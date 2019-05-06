@@ -14,6 +14,9 @@ CandidatesGenerator::CandidatesGenerator(
 void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
   printf("Processing cloud with %zu points.\n",
          cloud.getCloudOriginal()->size());
+
+  // util::Plot plotter(0, 0);
+  // plotter.plotCloud(cloud.getCloudOriginal(), "origion");
   
   // Calculate surface normals using integral images if possible.
   if (cloud.getCloudOriginal()->isOrganized() && cloud.getNormals().cols() == 0)
@@ -26,6 +29,8 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
   cloud.filterWorkspace(params_.workspace_);    
   if(cloud.getCloudProcessed()->isOrganized()) std::cout << "[INFO Organize] Cloud is organized after filterWorkspace." << "\n";
   else std::cout << "[INFO Organize] Cloud is not organized after filterWorkspace." << "\n";
+
+  // plotter.plotCloud(cloud.getCloudProcessed(), "filterWorkspace");
 
   // Perform statistical outlier removal
   if (0)
@@ -49,8 +54,8 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
   if (params_.voxelize_) {
     cloud.voxelizeCloud(params_.voxel_size_);
     
-    // util::Plot plotter(0, 0);
-    // plotter.plotCloud(cloud.getCloudProcessed(), "voxelizeCloud");
+    util::Plot plotter(0, 0);
+    plotter.plotCloud(cloud.getCloudProcessed(), "voxelizeCloud");
   }
 
   // Normals calculating

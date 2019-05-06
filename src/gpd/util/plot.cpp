@@ -180,7 +180,6 @@ void Plot::plotFingers3D(
                                   Eigen::Vector3d(0, 0.5, 0),
                                   Eigen::Vector3d(0, 0, 0.5)};
   PCLVisualizer viewer = createViewer(str);
-  viewer->addCoordinateSystem (0.1);
   const int max_hands_per_set_ = num_axes_ * num_orientations_;
 
   for (int i = 0; i < hand_set_list.size(); i++) {
@@ -219,7 +218,6 @@ void Plot::plotFingers3D(
     const PointCloudRGBA::Ptr &cloud, const std::string &str,
     const candidate::HandGeometry &geometry, bool use_same_color) {
   PCLVisualizer viewer = createViewer(str);
-  viewer->addCoordinateSystem (0.1);
 
   float min = std::numeric_limits<float>::max();
   float max = std::numeric_limits<float>::min();
@@ -330,7 +328,6 @@ void Plot::plotFingers3D(const std::vector<candidate::HandSet> &hand_set_list,
                                   Eigen::Vector3d(0, 0, 0.5)};
 
   PCLVisualizer viewer = createViewer(str);
-  viewer->addCoordinateSystem (0.1);
 
   for (int i = 0; i < hand_set_list.size(); i++) {
     for (int j = 0; j < hand_set_list[i].getHands().size(); j++) {
@@ -363,7 +360,6 @@ void Plot::plotFingers3D(const std::vector<candidate::Hand> &hand_list,
                          double outer_diameter, double finger_width,
                          double hand_depth, double hand_height, bool draw_all) {
   PCLVisualizer viewer = createViewer(str);
-  viewer->addCoordinateSystem (0.1);
   Eigen::Vector3d hand_rgb(0.0, 0.5, 0.5);
 
   for (int i = 0; i < hand_list.size(); i++) {
@@ -774,8 +770,10 @@ void Plot::keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,
   if (event.getKeySym() == "a" && event.keyDown()) {
     if (viewer->contains("ref")) {
       viewer->removeCoordinateSystem("ref");
+      printf("\033[0;36m%s\033[0m\n", "[Keyboard Event] Remove coordinate system.");
     } else {
       viewer->addCoordinateSystem(0.1, "ref");
+      printf("\033[0;36m%s\033[0m\n", "[Keyboard Event] Add coordinate system.");
     }
   }
 }

@@ -25,7 +25,8 @@ int DoMain(int argc, char **argv) {
   // Create training data.
   DataGenerator generator(config_filename);
 
-  generator.generateData();
+//  generator.generateData();
+  generator.generateDataBigbird();
 
   // std::vector<int> idx;
   // for (int i = 0; i < 120; i++) {

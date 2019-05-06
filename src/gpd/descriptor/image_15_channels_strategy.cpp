@@ -80,7 +80,7 @@ cv::Mat Image15ChannelsStrategy::calculateImage(
     showImage(image);
   }
 
-  saveImage(image); // 保存图片
+//  saveImage(image); // 保存图片
 
   return image;
 }

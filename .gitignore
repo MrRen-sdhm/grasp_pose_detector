@@ -4,6 +4,7 @@ bin-release/
 [Oo]bj/
 [Bb]in/
 build/
+bigbird_pcds/
 
 # Other files and folders
 .settings/
@@ -11,6 +12,7 @@ build/
 .idea/
 
 *.pb
+*.h5
 *.weights
 
 # Executables

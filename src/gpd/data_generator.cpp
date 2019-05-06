@@ -56,27 +56,33 @@ void DataGenerator::generateDataBigbird() {
   std::string train_file_path = output_root_ + "train.h5";
   std::string test_file_path = output_root_ + "test.h5";
 
+  std::vector<std::string> objects = loadObjectNames(objects_file_location_);
+
   int store_step = 5;
   bool plot_grasps = false;
-  // debugging
-  int num_objects = 4;
-  num_views_per_object_ = 4;
-  // int num_objects = objects.size();
+  int num_objects = objects.size();
   double total_time = 0.0;
 
-  std::vector<std::string> objects = loadObjectNames(objects_file_location_);
+  // debugging
+//  num_views_per_object_ = 4;
+
   std::vector<int> positives_list, negatives_list;
   std::vector<Instance> train_data, test_data;
   train_data.reserve(store_step * num_views_per_object_ * 1000);
   test_data.reserve(store_step * num_views_per_object_ * 1000);
 
-  createDatasetsHDF5(train_file_path, train_data.size() * num_objects);
-  createDatasetsHDF5(test_file_path, test_data.size() * num_objects);
+//  printf("train_data size:%zu test_data size:%zu\n", train_data.size(), test_data.size()); // 实际大小
+  printf("train_data capacity:%zu test_data capacity:%zu\n", train_data.capacity(), test_data.capacity()); // 容量大小
+
+  // 创建空的HDF5
+  createDatasetsHDF5(train_file_path, train_data.capacity() * num_objects);
+  createDatasetsHDF5(test_file_path, test_data.capacity() * num_objects);
   int train_offset = 0;
   int test_offset = 0;
 
   const double VOXEL_SIZE = 0.003;
 
+  // 创建每个物体的训练数据
   for (int i = 0; i < num_objects; i++) {
     printf("===> Generating images for object %d/%d: %s\n", i, num_objects,
            objects[i].c_str());
@@ -84,56 +90,61 @@ void DataGenerator::generateDataBigbird() {
 
     // Load mesh for ground truth.
     std::string prefix = data_root_ + objects[i];
-    util::Cloud mesh = loadMesh(prefix + "_gt.pcd", prefix + "_gt_normals.csv");
+    util::Cloud mesh = loadMesh(prefix + "_gt.pcd", prefix + "_gt_normals.csv"); // name: /home/.../object_gt.pcd /home/.../object_gt_normals.csv
     mesh.calculateNormalsOMP(num_threads_);
 
     for (int j = 0; j < num_views_per_object_; j++) {
       printf("===> Processing view %d/%d\n", j + 1, num_views_per_object_);
 
       // 1. Load point cloud.
+      printf("\033[0;36m%s\033[0m\n", "[Step1] Load point cloud..");
       Eigen::Matrix3Xd view_points(3, 1);
       view_points << 0.0, 0.0, 0.0;  // TODO: Load camera position.
       util::Cloud cloud(
-          prefix + "_" + boost::lexical_cast<std::string>(j + 1) + ".pcd",
+          prefix + "_" + boost::lexical_cast<std::string>(j + 1) + ".pcd", // name: /home/.../object_1.pcd
           view_points);
       cloud.voxelizeCloud(VOXEL_SIZE);
       cloud.calculateNormalsOMP(num_threads_);
       cloud.subsample(num_samples_);
 
       // 2. Find grasps in point cloud.
+      printf("\033[0;36m%s\033[0m\n", "[Step2] Find grasps in point cloud.");
       std::vector<std::unique_ptr<candidate::Hand>> grasps;
       std::vector<std::unique_ptr<cv::Mat>> images;
       bool has_grasps = detector_->createGraspImages(cloud, grasps, images);
 
       if (plot_grasps) {
-        // Plot plotter;
-        //        plotter.plotNormals(cloud.getCloudOriginal(),
-        //        cloud.getNormals());
-        //        plotter.plotFingers(grasps, cloud.getCloudOriginal(), "Grasps
-        //        on view");
-        //        plotter.plotFingers3D(candidates,
-        //        cloud_cam.getCloudOriginal(), "Grasps on view",
-        //        hand_geom.outer_diameter_,
-        //                                  hand_geom.finger_width_,
-        //                                  hand_geom.depth_,
-        //                                  hand_geom.height_);
+//          Plot plotter(0, 8);
+//          plotter.plotNormals(cloud.getCloudOriginal(),
+//          cloud.getNormals());
+//          plotter.plotFingers(grasps, cloud.getCloudOriginal(), "Grasps on view");
+//          plotter.plotFingers3D(candidates,
+//          cloud_cam.getCloudOriginal(), "Grasps on view",
+//          hand_geom.outer_diameter_,
+//                                    hand_geom.finger_width_,
+//                                    hand_geom.depth_,
+//                                    hand_geom.height_);
       }
 
       // 3. Evaluate grasps against ground truth (mesh).
+      printf("\033[0;36m%s\033[0m\n", "[Step3] Evaluate grasps against ground truth (mesh).");
       std::vector<int> labels = detector_->evalGroundTruth(mesh, grasps);
 
       // 4. Split grasps into positives and negatives.
+      printf("\033[0;36m%s\033[0m\n", "[Step4] Split grasps into positives and negatives.");
       std::vector<int> positives;
       std::vector<int> negatives;
       splitInstances(labels, positives, negatives);
 
       // 5. Balance the number of positives and negatives.
+      printf("\033[0;36m%s\033[0m\n", "[Step5] Balance the number of positives and negatives.");
       balanceInstances(max_grasps_per_view_, positives, negatives,
                        positives_list, negatives_list);
       printf("#positives: %d, #negatives: %d\n", (int)positives_list.size(),
              (int)negatives_list.size());
 
       // 6. Assign instances to training or test data.
+      printf("\033[0;36m%s\033[0m\n", "[Step6] Assign instances to training or test data.");
       if (std::find(test_views_.begin(), test_views_.end(), j) !=
           test_views_.end()) {
         addInstances(grasps, images, positives_list, negatives_list, test_data);
@@ -143,7 +154,7 @@ void DataGenerator::generateDataBigbird() {
                      train_data);
         std::cout << "train view, # train data: " << train_data.size() << "\n";
       }
-      printf("------------\n");
+      printf("\033[0;31m%s\033[0m\n", "[Next View] ------------------------");
     }
 
     if ((i + 1) % store_step == 0) {
@@ -183,19 +194,19 @@ void DataGenerator::generateDataBigbird() {
   printf("Generated %d training and test %d instances\n", train_offset,
          test_offset);
 
-  //  // Shuffle the data.
-  //  std::random_shuffle(train_data.begin(), train_data.end());
-  //  std::random_shuffle(test_data.begin(), test_data.end());
+    // Shuffle the data.
+//  std::random_shuffle(train_data.begin(), train_data.end());
+//  std::random_shuffle(test_data.begin(), test_data.end());
 
-  //  std::vector<Instance> data0;
-  //  data0.push_back(train_data[0]);
-  //  data0.push_back(train_data[1]);
-  //  data0.push_back(train_data[2]);
-  //  storeHDF5(data0, output_root_ + "train.h5");
+//  std::vector<Instance> data0;
+//  data0.push_back(train_data[0]);
+//  data0.push_back(train_data[1]);
+//  data0.push_back(train_data[2]);
+//  storeHDF5(data0, output_root_ + "train.h5");
 
   // Store the grasp images and their labels in databases.
-  //  storeHDF5(train_data, output_root_ + "train.h5");
-  //  storeHDF5(test_data, output_root_ + "test.h5");
+//  storeHDF5(train_data, output_root_ + "train.h5");
+//  storeHDF5(test_data, output_root_ + "test.h5");
   printf("Wrote data to training and test databases\n");
 }
 
@@ -212,8 +223,9 @@ void DataGenerator::generateData() {
   int num_objects = objects.size();
 
   // debugging
-  // num_objects = 1;
-  // num_views_per_object_ = 20;
+  printf("\033[0;31m%s\033[0m\n", "[INFO] Use debugging params...");
+  num_objects = 1;
+  num_views_per_object_ = 4;
 
   std::vector<int> positives_list, negatives_list;
   std::vector<Instance> train_data, test_data;
@@ -253,6 +265,7 @@ void DataGenerator::generateData() {
       std::vector<std::unique_ptr<cv::Mat>> images_view(0);
 
       // 1. Load point cloud.
+      printf("\033[0;36m%s\033[0m\n", "[Step1] Load point cloud..");
       Eigen::Matrix3Xd view_points(3, 1);
       view_points << 0.0, 0.0, 0.0;  // TODO: Load camera position.
       util::Cloud cloud(
@@ -266,6 +279,7 @@ void DataGenerator::generateData() {
         cloud.subsampleUniformly(num_samples_);
 
         // 2. Find grasps in point cloud.
+        printf("\033[0;36m%s\033[0m\n", "[Step2] Find grasps in point cloud.");
         std::vector<std::unique_ptr<candidate::Hand>> grasps;
         std::vector<std::unique_ptr<cv::Mat>> images;
         bool has_grasps = detector_->createGraspImages(cloud, grasps, images);
@@ -285,10 +299,12 @@ void DataGenerator::generateData() {
         }
 
         // 3. Evaluate grasps against ground truth (mesh).
+        printf("\033[0;36m%s\033[0m\n", "[Step3] Evaluate grasps against ground truth (mesh).");
         printf("Eval GT ...\n");
         std::vector<int> labels = detector_->evalGroundTruth(mesh, grasps);
 
         // 4. Split grasps into positives and negatives.
+        printf("\033[0;36m%s\033[0m\n", "[Step4] Split grasps into positives and negatives.");
         std::vector<int> positives;
         std::vector<int> negatives;
         splitInstances(labels, positives, negatives);
@@ -321,12 +337,14 @@ void DataGenerator::generateData() {
              positives_view.size(), negatives_view.size());
 
       // 5. Balance the number of positives and negatives.
+      printf("\033[0;36m%s\033[0m\n", "[Step5] Balance the number of positives and negatives.");
       balanceInstances(max_grasps_per_view_, positives_view, negatives_view,
                        positives_list, negatives_list);
       printf("#positives: %d, #negatives: %d\n", (int)positives_list.size(),
              (int)negatives_list.size());
 
       // 6. Assign instances to training or test data.
+      printf("\033[0;36m%s\033[0m\n", "[Step6] Assign instances to training or test data.");
       if (std::find(test_views_.begin(), test_views_.end(), j) !=
           test_views_.end()) {
         addInstances(labeled_grasps_view, images_view, positives_list,
@@ -337,7 +355,7 @@ void DataGenerator::generateData() {
                      negatives_list, train_data);
         std::cout << "train view, # train data: " << train_data.size() << "\n";
       }
-      printf("------------------------------------\n");
+      printf("\033[0;31m%s\033[0m\n", "[Next View] -------------------------------");
     }
 
     if ((i + 1) % store_step == 0) {
@@ -396,7 +414,7 @@ void DataGenerator::createDatasetsHDF5(const std::string &filepath,
   printf("Opening HDF5 file at: %s\n", filepath.c_str());
   cv::Ptr<cv::hdf::HDF5> h5io = cv::hdf::open(filepath);
 
-  int n_dims_labels = 2;
+  const int n_dims_labels = 2;
   int dsdims_labels[n_dims_labels] = {num_data, 1};
   int chunks_labels[n_dims_labels] = {chunk_size_, dsdims_labels[1]};
   printf("Creating dataset <labels>: %d x %d\n", dsdims_labels[0],
@@ -405,7 +423,7 @@ void DataGenerator::createDatasetsHDF5(const std::string &filepath,
                  chunks_labels);
 
   const descriptor::ImageGeometry &image_geom = detector_->getImageGeometry();
-  int n_dims_images = 4;
+  const int n_dims_images = 4;
   int dsdims_images[n_dims_images] = {
       num_data, image_geom.size_, image_geom.size_, image_geom.num_channels_};
   int chunks_images[n_dims_images] = {chunk_size_, dsdims_images[1],
@@ -617,7 +635,7 @@ void DataGenerator::storeHDF5(const std::vector<Instance> &dataset,
 
   printf("Storing data as HDF5 at: %s\n", file_location.c_str());
 
-  int n_dims = 3;
+  const  int n_dims = 3;
   int dsdims_images[n_dims] = {static_cast<int>(dataset.size()),
                                dataset[0].image_->rows,
                                dataset[0].image_->cols};
@@ -645,7 +663,7 @@ void DataGenerator::storeHDF5(const std::vector<Instance> &dataset,
 
   cv::Ptr<cv::hdf::HDF5> h5io = cv::hdf::open(file_location);
   if (!h5io->hlexists(IMAGE_DS_NAME)) {
-    int n_dims_labels = 2;
+    const int n_dims_labels = 2;
     int dsdims_labels[n_dims_labels] = {static_cast<int>(dataset.size()), 1};
     printf("Creating dataset <labels> ...\n");
     h5io->dscreate(n_dims_labels, dsdims_labels, CV_8UC1, LABELS_DS_NAME, 9);

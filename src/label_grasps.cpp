@@ -5,150 +5,156 @@
 #include <gpd/descriptor/image_15_channels_strategy.h>
 
 namespace gpd {
-namespace apps {
-namespace detect_grasps {
+    namespace apps {
+        namespace detect_grasps {
 
-bool checkFileExists(const std::string &file_name) {
-  std::ifstream file;
-  file.open(file_name.c_str());
-  if (!file) {
-    std::cout << "File " + file_name + " could not be found!\n";
-    return false;
-  }
-  file.close();
-  return true;
-}
+            bool checkFileExists(const std::string &file_name) {
+                std::ifstream file;
+                file.open(file_name.c_str());
+                if (!file) {
+                    std::cout << "File " + file_name + " could not be found!\n";
+                    return false;
+                }
+                file.close();
+                return true;
+            }
 
 
-int DoMain(int argc, char *argv[]) {
-  // Read arguments from command line.
-  if (argc < 4) {
-    std::cout << "Error: Not enough input arguments!\n\n";
-    std::cout << "Usage: label_grasps CONFIG_FILE PCD_FILE MESH_FILE\n\n";
-    std::cout << "Find grasp poses for a point cloud, PCD_FILE (*.pcd), "
-                 "using parameters from CONFIG_FILE (*.cfg), and check them "
-                 "against a mesh, MESH_FILE (*.pcd).\n\n";
-    return (-1);
-  }
+            int DoMain(int argc, char *argv[]) {
+                // Read arguments from command line.
+                if (argc < 4) {
+                    std::cout << "Error: Not enough input arguments!\n\n";
+                    std::cout << "Usage: label_grasps CONFIG_FILE PCD_FILE MESH_FILE\n\n";
+                    std::cout << "Find grasp poses for a point cloud, PCD_FILE (*.pcd), "
+                                 "using parameters from CONFIG_FILE (*.cfg), and check them "
+                                 "against a mesh, MESH_FILE (*.pcd).\n\n";
+                    return (-1);
+                }
 
-  std::string config_filename = argv[1];
-  std::string pcd_filename = argv[2];
-  std::string mesh_filename = argv[3];
-  if (!checkFileExists(config_filename)) {
-    printf("Error: CONFIG_FILE not found!\n");
-    return (-1);
-  }
-  if (!checkFileExists(pcd_filename)) {
-    printf("Error: PCD_FILE not found!\n");
-    return (-1);
-  }
-  if (!checkFileExists(mesh_filename)) {
-    printf("Error: MESH_FILE not found!\n");
-    return (-1);
-  }
+                std::string config_filename = argv[1];
+                std::string pcd_filename = argv[2];
+                std::string mesh_filename = argv[3];
+                if (!checkFileExists(config_filename)) {
+                    printf("Error: CONFIG_FILE not found!\n");
+                    return (-1);
+                }
+                if (!checkFileExists(pcd_filename)) {
+                    printf("Error: PCD_FILE not found!\n");
+                    return (-1);
+                }
+                if (!checkFileExists(mesh_filename)) {
+                    printf("Error: MESH_FILE not found!\n");
+                    return (-1);
+                }
 
-  // Read parameters from configuration file.
-  const double VOXEL_SIZE = 0.003;
-  util::ConfigFile config_file(config_filename);
-  config_file.ExtractKeys();
-  std::vector<double> workspace =
-      config_file.getValueOfKeyAsStdVectorDouble("workspace", "-1 1 -1 1 -1 1");
-  int num_threads = config_file.getValueOfKey<int>("num_threads", 1);
-  int num_samples = config_file.getValueOfKey<int>("num_samples", 200);
-  bool sample_above_plane =
-      config_file.getValueOfKey<int>("sample_above_plane", 1);
-  printf("num_threads: %d, num_samples: %d\n", num_threads, num_samples);
+                // Read parameters from configuration file.
+                const double VOXEL_SIZE = 0.003;
+                util::ConfigFile config_file(config_filename);
+                config_file.ExtractKeys();
+                std::vector<double> workspace =
+                        config_file.getValueOfKeyAsStdVectorDouble("workspace", "-1 1 -1 1 -1 1");
+                int num_threads = config_file.getValueOfKey<int>("num_threads", 1);
+                int num_samples = config_file.getValueOfKey<int>("num_samples", 30);
+                bool sample_above_plane =
+                        config_file.getValueOfKey<int>("sample_above_plane", 1);
+                printf("num_threads: %d, num_samples: %d\n", num_threads, num_samples);
 
-  // View point from which the camera sees the point cloud.
-  Eigen::Matrix3Xd view_points(3, 1);
-  view_points.setZero();
+                // View point from which the camera sees the point cloud.
+                Eigen::Matrix3Xd view_points(3, 1);
+                view_points.setZero();
 
-  // Load point cloud from file.
-  util::Cloud cloud(pcd_filename, view_points);
-  if (cloud.getCloudOriginal()->size() == 0) {
-    std::cout << "Error: Input point cloud is empty or does not exist!\n";
-    return (-1);
-  }
+                // Load point cloud from file.
+                util::Cloud cloud(pcd_filename, view_points);
+                if (cloud.getCloudOriginal()->size() == 0) {
+                    std::cout << "Error: Input point cloud is empty or does not exist!\n";
+                    return (-1);
+                }
 
-  // Load point cloud from file.
-  util::Cloud mesh(mesh_filename, view_points);
-  if (mesh.getCloudOriginal()->size() == 0) {
-    std::cout << "Error: Mesh point cloud is empty or does not exist!\n";
-    return (-1);
-  }
+                // Load point cloud from file.
+                util::Cloud mesh(mesh_filename, view_points);
+                if (mesh.getCloudOriginal()->size() == 0) {
+                    std::cout << "Error: Mesh point cloud is empty or does not exist!\n";
+                    return (-1);
+                }
 
-  // Prepare the point cloud.
-  cloud.filterWorkspace(workspace);
-  cloud.voxelizeCloud(VOXEL_SIZE);
-  cloud.calculateNormals(num_threads);
-//  cloud.setNormals(cloud.getNormals() * (-1.0));  // TODO: do not do this!
-  if (sample_above_plane) {
-    cloud.sampleAbovePlane();
-  }
-  cloud.subsample(num_samples);
+                // Prepare the point cloud.
+                cloud.filterWorkspace(workspace);
+                cloud.voxelizeCloud(VOXEL_SIZE);
+                cloud.calculateNormals(num_threads);
+                cloud.setNormals(cloud.getNormals() * (-1.0));  // NOTE: do not do this! 翻转单视角点云表面法线（坐标系在物体内部时使用）
+                if (sample_above_plane) {
+                    cloud.sampleAbovePlane();
+                }
+                cloud.subsample(num_samples);
 
-  // Prepare the mesh.
-  mesh.calculateNormals(num_threads);
-  mesh.setNormals(mesh.getNormals() * (-1.0));
+                // Prepare the mesh.
+                mesh.calculateNormals(num_threads);
+                mesh.setNormals(mesh.getNormals() * (-1.0)); // NOTE: 翻转 ground truth 的表面法线
 
-  // Detect grasp poses.
-  std::vector<std::unique_ptr<candidate::Hand>> hands;
-  std::vector<std::unique_ptr<cv::Mat>> images;
-  GraspDetector detector(config_filename);
-  detector.createGraspImages(cloud, hands, images);
+                // Detect grasp poses.
+                std::vector<std::unique_ptr<candidate::Hand>> hands;
+                std::vector<std::unique_ptr<cv::Mat>> images;
+                GraspDetector detector(config_filename);
+                detector.createGraspImages(cloud, hands, images);
 
-//  descriptor::Image15ChannelsStrategy image15ch(detector.getImageGeometry(), 6, 8, true);
-//  image15ch.createImages()
+                //  descriptor::Image15ChannelsStrategy image15ch(detector.getImageGeometry(), 6, 8, true);
+                //  image15ch.createImages()
 
-  printf("hands: %zu\n", hands.size());
-  printf("images: %zu\n", images.size());
+                printf("hands: %zu\n", hands.size());
+                printf("images: %zu\n", images.size());
 
-  std::vector<int> labels = detector.evalGroundTruth(mesh, hands);
-  printf("labels: %zu\n", labels.size());
+                std::vector<int> labels = detector.evalGroundTruth(mesh, hands);
+                printf("labels: %zu\n", labels.size());
 
-  const candidate::HandSearch::Parameters &params =
-      detector.getHandSearchParameters();
-  util::Plot plot(params.hand_axes_.size(), params.num_orientations_);
-  plot.plotAntipodalHands(hands, cloud.getCloudProcessed(), "Labeled Hands",
-                          params.hand_geometry_);
+                const candidate::HandSearch::Parameters &params =
+                        detector.getHandSearchParameters();
+                util::Plot plot(params.hand_axes_.size(), params.num_orientations_);
 
-  std::vector<std::unique_ptr<candidate::Hand>> valid_hands;
+                // 显示单视角点云表面法线
+                plot.plotNormals(cloud.getCloudOriginal(), cloud.getNormals());
+                // 显示ground truth点云表面法线
+                plot.plotNormals(mesh.getCloudOriginal(), mesh.getNormals());
 
-  for (size_t i = 0; i < hands.size(); i++) {
-//    printf("(%zu) label: %d\n", i, labels[i]);
-    if (hands[i]->isFullAntipodal()) { // 有效抓取姿态
-      std::string old_path = "/home/sdhm/图片/images/GraspImage" + std::to_string(i) + ".jpg";
-      std::string new_path = "/home/sdhm/图片/images/1/GraspImage" + std::to_string(i) + ".jpg";
-      printf("(%zu) %d ", i, labels[i]);
-      printf("move from %s to %s\n", old_path.c_str(), new_path.c_str());
+                plot.plotAntipodalHands(hands, cloud.getCloudProcessed(), "Labeled Hands",
+                                        params.hand_geometry_);
 
-      rename(old_path.c_str(), new_path.c_str()); // 移动文件
+                std::vector<std::unique_ptr<candidate::Hand>> valid_hands;
 
-      valid_hands.push_back(std::move(hands[i]));
-    }
-    else { // 无效抓取姿态
-      std::string old_path = "/home/sdhm/图片/images/GraspImage" + std::to_string(i) + ".jpg";
-      std::string new_path = "/home/sdhm/图片/images/0/GraspImage" + std::to_string(i) + ".jpg";
-      printf("(%zu) %d ", i, labels[i]);
-      printf("move from %s to %s\n", old_path.c_str(), new_path.c_str());
+                for (size_t i = 0; i < hands.size(); i++) {
+                //    printf("(%zu) label: %d\n", i, labels[i]);
+                    if (hands[i]->isFullAntipodal()) { // 有效抓取姿态
+                        std::string old_path = "/home/sdhm/图片/images/GraspImage" + std::to_string(i) + ".jpg";
+                        std::string new_path = "/home/sdhm/图片/images/1/GraspImage" + std::to_string(i) + ".jpg";
+                        printf("(%zu) %d ", i, labels[i]);
+                        printf("move from %s to %s\n", old_path.c_str(), new_path.c_str());
 
-      rename(old_path.c_str(), new_path.c_str()); // 移动文件
-    }
-  }
-  plot.plotValidHands(valid_hands, cloud.getCloudProcessed(),
-                      mesh.getCloudProcessed(), "Antipodal Hands",
-                      params.hand_geometry_);
-  // plot.plotFingers3D(valid_hands, cloud.getCloudProcessed(), "Antipodal
-  // Hands",
-  //                    params.hand_geometry_);
+                        rename(old_path.c_str(), new_path.c_str()); // 移动文件
 
-  return 0;
-}
+                        valid_hands.push_back(std::move(hands[i]));
+                    }
+                    else { // 无效抓取姿态
+                        std::string old_path = "/home/sdhm/图片/images/GraspImage" + std::to_string(i) + ".jpg";
+                        std::string new_path = "/home/sdhm/图片/images/0/GraspImage" + std::to_string(i) + ".jpg";
+                        printf("(%zu) %d ", i, labels[i]);
+                        printf("move from %s to %s\n", old_path.c_str(), new_path.c_str());
 
-}  // namespace detect_grasps
-}  // namespace apps
+                        rename(old_path.c_str(), new_path.c_str()); // 移动文件
+                    }
+                }
+                plot.plotValidHands(valid_hands, cloud.getCloudProcessed(),
+                                    mesh.getCloudProcessed(), "Antipodal Hands",
+                                    params.hand_geometry_);
+                // plot.plotFingers3D(valid_hands, cloud.getCloudProcessed(), "Antipodal
+                // Hands",
+                //                    params.hand_geometry_);
+
+                return 0;
+            }
+
+        }  // namespace detect_grasps
+    }  // namespace apps
 }  // namespace gpd
 
 int main(int argc, char *argv[]) {
-  return gpd::apps::detect_grasps::DoMain(argc, argv);
+    return gpd::apps::detect_grasps::DoMain(argc, argv);
 }

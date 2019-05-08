@@ -1,10 +1,13 @@
 # Build and Release Folders
+cmake-build-debug/
+cmake-build-release/
 bin-debug/
 bin-release/
 [Oo]bj/
 [Bb]in/
 build/
-bigbird_pcds/
+bigbird_pcds/datasets/
+bigbird_pcds/datasets_raw/
 
 # Other files and folders
 .settings/

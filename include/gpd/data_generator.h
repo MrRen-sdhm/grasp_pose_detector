@@ -171,6 +171,7 @@ class DataGenerator {
       detector_;  ///< object to generate grasp candidates and images
 
   std::string data_root_;
+  std::string raw_data_root_;
   std::string objects_file_location_;
   std::string output_root_;
   int num_views_per_object_;

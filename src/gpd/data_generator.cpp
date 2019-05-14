@@ -136,13 +136,19 @@ namespace gpd {
 //                                            params.hand_geometry_);
 
                     std::vector<std::unique_ptr<candidate::Hand>> valid_grasps;
+                    std::vector<std::unique_ptr<candidate::Hand>> invalid_grasps;
                     for (size_t i = 0; i < grasps.size(); i++) {
                         if (grasps[i]->isFullAntipodal()) { // 有效抓取姿态
                             valid_grasps.push_back(std::move(grasps[i]));
                         }
+                        else invalid_grasps.push_back(std::move(grasps[i]));
                     }
                     plot.plotValidHands(valid_grasps, cloud.getCloudProcessed(),
                                         mesh.getCloudProcessed(), "Antipodal Hands",
+                                        params.hand_geometry_);
+
+                    plot.plotValidHands(invalid_grasps, cloud.getCloudProcessed(),
+                                        mesh.getCloudProcessed(), "Inantipodal Hands",
                                         params.hand_geometry_);
                 }
 
@@ -254,20 +260,19 @@ namespace gpd {
         test_data.reserve(n);
         std::string train_file_path = output_root_ + "train.h5";
         std::string test_file_path = output_root_ + "test.h5";
-        createDatasetsHDF5(train_file_path, num_views_per_object_ * 2 *
+        createDatasetsHDF5(train_file_path, (num_views_per_object_ - test_views_.size()) * 2 *
                                             max_grasps_per_view_ * num_objects);
-        createDatasetsHDF5(test_file_path, num_views_per_object_ * 2 *
+        createDatasetsHDF5(test_file_path, test_views_.size() * 2 *
                                            max_grasps_per_view_ * num_objects);
         int train_offset = 0;
         int test_offset = 0;
 
         for (int i = 0; i < num_objects; i++) {
-            printf("===> Generating images for object %d/%d: %s\n", i + 1, num_objects,
-                   objects[i].c_str());
+            printf("\033[0;31m%s\033[0m%d/%d: %s\n\n", "======> Generating images for object ", i, num_objects, objects[i].c_str());
             double t0 = omp_get_wtime();
 
             // Load mesh for ground truth.
-            std::string prefix = data_root_ + objects[i];
+            std::string prefix = data_root_ + objects[i] + "/" + objects[i];
             util::Cloud mesh = loadMesh(prefix + "_gt.pcd", prefix + "_gt_normals.csv");
             mesh.calculateNormalsOMP(num_threads_);
             mesh.setNormals(mesh.getNormals() * (-1.0)); // NOTE: 翻转 ground truth 表面法线
@@ -312,19 +317,26 @@ namespace gpd {
                                 detector_->getHandSearchParameters();
                         util::Plot plot(params.hand_axes_.size(), params.num_orientations_);
 
-//                    plot.plotNormals(cloud.getCloudOriginal(), cloud.getNormals());
+                        plot.plotNormals(cloud.getCloudOriginal(), cloud.getNormals());
+                        plot.plotNormals(mesh.getCloudOriginal(), mesh.getNormals());
 
 //                    plot.plotAntipodalHands(grasps, cloud.getCloudProcessed(), "Labeled Hands",
 //                                            params.hand_geometry_);
 
                         std::vector<std::unique_ptr<candidate::Hand>> valid_grasps;
+                        std::vector<std::unique_ptr<candidate::Hand>> invalid_grasps;
                         for (size_t i = 0; i < grasps.size(); i++) {
                             if (grasps[i]->isFullAntipodal()) { // 有效抓取姿态
                                 valid_grasps.push_back(std::move(grasps[i]));
                             }
+                            else invalid_grasps.push_back(std::move(grasps[i]));
                         }
                         plot.plotValidHands(valid_grasps, cloud.getCloudProcessed(),
                                             mesh.getCloudProcessed(), "Antipodal Hands",
+                                            params.hand_geometry_);
+
+                        plot.plotValidHands(invalid_grasps, cloud.getCloudProcessed(),
+                                            mesh.getCloudProcessed(), "Inantipodal Hands",
                                             params.hand_geometry_);
                     }
 
@@ -380,7 +392,7 @@ namespace gpd {
                                  negatives_list, train_data);
                     std::cout << "train view, # train data: " << train_data.size() << "\n";
                 }
-                printf("\033[0;31m%s\033[0m\n", "[Next View] -------------------------------");
+                printf("\033[0;32m%s\033[0m\n\n", "[Next View] -------------------------------");
             }
 
             if ((i + 1) % store_step == 0) {
@@ -413,7 +425,7 @@ namespace gpd {
                     "or %4.4fs.\n",
                     avg_time * num_objects_left * (1.0 / 3600.0),
                     avg_time * num_objects_left);
-            printf("======================================\n\n");
+            printf("\033[0;31m%s\033[0m\n\n\n", "[INFO] ============== Stored dataset once. =============");
         }
 
         // Store remaining data.

@@ -113,7 +113,7 @@ int FingerHand::deepenHand(const Eigen::Matrix3Xd &points, double min_depth,
 
   // Attempt to deepen hand (move as far onto the object as possible without
   // collision).
-  const double DEEPEN_STEP_SIZE = 0.005;
+  const double DEEPEN_STEP_SIZE = 0.01;
   FingerHand new_hand = *this;
   FingerHand last_new_hand = new_hand;
 

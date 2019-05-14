@@ -132,10 +132,20 @@ class Plot {
       const PointCloudRGBA::Ptr &cloud, const std::string &str,
       const candidate::HandGeometry &geometry, bool use_same_color = true);
 
+  void plotAntipodalHand(
+      const candidate::Hand &hand,
+      const PointCloudRGBA::Ptr &cloud, const std::string &str,
+      const candidate::HandGeometry &geometry);
+
   void plotAntipodalHands(
       const std::vector<std::unique_ptr<candidate::Hand>> &hand_list,
       const PointCloudRGBA::Ptr &cloud, const std::string &str,
       const candidate::HandGeometry &geometry);
+
+  void plotValidHand(
+      const candidate::Hand&hand_list,
+      const PointCloudRGBA::Ptr &cloud, const PointCloudRGBA::Ptr &mesh,
+      const std::string &str, const candidate::HandGeometry &geometry, bool draw_frame);
 
   void plotValidHands(
       const std::vector<std::unique_ptr<candidate::Hand>> &hand_list,

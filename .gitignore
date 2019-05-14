@@ -14,6 +14,8 @@ bigbird_pcds/datasets_raw/
 .vscode/
 .idea/
 
+*.pwf
+*.pt
 *.pb
 *.h5
 *.weights

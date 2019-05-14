@@ -115,9 +115,10 @@ def eval(model, test_loader, device):
 
 
 with h5py.File(sys.argv[1], 'r') as db:
-    num_train = len(db['images'])
+    num_train = len(db['images']) # 不可用！这样获得的是整个数据库的大小
+    num_train = 30000
 print('Have', num_train, 'total training examples')
-num_epochs = 4
+num_epochs = 20
 max_in_memory = 300000
 repeats = 3
 early_stop_loss = 0.0000001
@@ -139,6 +140,8 @@ print('Loading data ...')
 # Create the network.
 input_channels = int(sys.argv[3])
 net = Net(input_channels)
+# load the pre trained net work
+net.load_state_dict(torch.load('model_88.05.pwf'))
 print(net)
 
 print('Copying network to GPU ...')
@@ -151,12 +154,14 @@ criterion = nn.CrossEntropyLoss()
 
 #optimizer = optim.Adam(net.parameters(), lr=0.001, weight_decay=0.001) # works well
 #optimizer = optim.Adam(net.parameters(), lr=0.00001, weight_decay=0.001) # works well
-optimizer = optim.Adam(net.parameters(), lr=0.000001, weight_decay=0.001) # works well
+# optimizer = optim.Adam(net.parameters(), lr=0.000001, weight_decay=0.001) # works well
+optimizer = optim.Adam(net.parameters(), lr=0.0001, weight_decay=0.0005)
 
 #scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
 
-test_set = H5Dataset(sys.argv[2], 0, 20000)
-test_loader = torchdata.DataLoader(test_set, batch_size=64, shuffle=True)
+batch_size = 256
+test_set = H5Dataset(sys.argv[2], 0, 10000)
+test_loader = torchdata.DataLoader(test_set, batch_size=batch_size, shuffle=True)
 accuracy = eval(net, test_loader, device)
 accuracies = []
 accuracies.append(accuracy)
@@ -181,7 +186,7 @@ for epoch in range(num_epochs):
         train_loader = []
         dset = H5Dataset(sys.argv[1], indices[j], indices[j + 1])
         #train_loader = torchdata.DataLoader(dset, batch_size=64, shuffle=True, num_workers=2)
-        train_loader = torchdata.DataLoader(dset, batch_size=64, shuffle=True)
+        train_loader = torchdata.DataLoader(dset, batch_size=batch_size, shuffle=True)
 
         running_loss = 0.0
 
@@ -229,6 +234,7 @@ torch.save(net.state_dict(), model_path)
 with open('loss_stats.txt', 'w') as f:
     for l in losses:
         f.write("%s\n" % str(l))
+
 with open('accuracy_stats.txt', 'w') as f:
     for a in accuracies:
         f.write("%s\n" % str(a))

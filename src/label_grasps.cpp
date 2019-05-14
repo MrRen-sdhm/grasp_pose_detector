@@ -19,6 +19,44 @@ namespace gpd {
                 return true;
             }
 
+            void showImage(const cv::Mat &image) {
+                int border = 5;
+                int n = 3;
+                int image_size = 60;
+                int total_size = n * (image_size + border) + border;
+
+                cv::Mat image_out(total_size, total_size, CV_8UC3, cv::Scalar(0.5));
+                std::vector<cv::Mat> channels;
+                cv::split(image, channels);
+
+                for (int i = 0; i < n; i++) {
+                    // OpenCV requires images to be in BGR or grayscale to be displayed.
+                    cv::Mat normals_rgb, depth_rgb, shadow_rgb;
+                    std::vector<cv::Mat> normals_channels(3);
+                    for (int j = 0; j < normals_channels.size(); j++) {
+                        normals_channels[j] = channels[i * 5 + j];
+                    }
+                    cv::merge(normals_channels, normals_rgb);
+                    // OpenCV requires images to be in BGR or grayscale to be displayed.
+                    cvtColor(normals_rgb, normals_rgb, cv::COLOR_RGB2BGR);
+                    cvtColor(channels[i * 5 + 3], depth_rgb, cv::COLOR_GRAY2RGB);
+                    cvtColor(channels[i * 5 + 4], shadow_rgb, cv::COLOR_GRAY2RGB);
+                    normals_rgb.copyTo(image_out(cv::Rect(
+                            border, border + i * (border + image_size), image_size, image_size)));
+                    depth_rgb.copyTo(image_out(cv::Rect(2 * border + image_size,
+                                                        border + i * (border + image_size),
+                                                        image_size, image_size)));
+                    shadow_rgb.copyTo(image_out(cv::Rect(3 * border + 2 * image_size,
+                                                         border + i * (border + image_size),
+                                                         image_size, image_size)));
+                }
+
+                cv::namedWindow("Grasp Image (15 channels)", cv::WINDOW_NORMAL);
+                cv::imshow("Grasp Image (15 channels)", image_out);
+                cv::waitKey(0);
+                cv::destroyWindow("Grasp Image (15 channels)");
+            }
+
 
             int DoMain(int argc, char *argv[]) {
                 // Read arguments from command line.
@@ -97,9 +135,6 @@ namespace gpd {
                 GraspDetector detector(config_filename);
                 detector.createGraspImages(cloud, hands, images);
 
-                //  descriptor::Image15ChannelsStrategy image15ch(detector.getImageGeometry(), 6, 8, true);
-                //  image15ch.createImages()
-
                 printf("hands: %zu\n", hands.size());
                 printf("images: %zu\n", images.size());
 
@@ -115,38 +150,61 @@ namespace gpd {
                 // 显示ground truth点云表面法线
                 plot.plotNormals(mesh.getCloudOriginal(), mesh.getNormals());
 
-                plot.plotAntipodalHands(hands, cloud.getCloudProcessed(), "Labeled Hands",
-                                        params.hand_geometry_);
+                // 显示所有抓取姿态
+//                plot.plotAntipodalHands(hands, cloud.getCloudProcessed(), "Labeled Hands",
+//                                        params.hand_geometry_);
 
-                std::vector<std::unique_ptr<candidate::Hand>> valid_hands;
+                // 单独显示各个抓取姿态
+//                for(int i = 0; i < hands.size(); i++) {
+//                    if (hands[i]->isFullAntipodal()) {
+//                        plot.plotAntipodalHand(*hands[i], cloud.getCloudProcessed(), "Hand" + std::to_string(i),
+//                                               params.hand_geometry_);
+//                    }
+//                }
 
-                for (size_t i = 0; i < hands.size(); i++) {
-                //    printf("(%zu) label: %d\n", i, labels[i]);
-                    if (hands[i]->isFullAntipodal()) { // 有效抓取姿态
-                        std::string old_path = "/home/sdhm/图片/images/GraspImage" + std::to_string(i) + ".jpg";
-                        std::string new_path = "/home/sdhm/图片/images/1/GraspImage" + std::to_string(i) + ".jpg";
-                        printf("(%zu) %d ", i, labels[i]);
-                        printf("move from %s to %s\n", old_path.c_str(), new_path.c_str());
-
-                        rename(old_path.c_str(), new_path.c_str()); // 移动文件
-
-                        valid_hands.push_back(std::move(hands[i]));
-                    }
-                    else { // 无效抓取姿态
-                        std::string old_path = "/home/sdhm/图片/images/GraspImage" + std::to_string(i) + ".jpg";
-                        std::string new_path = "/home/sdhm/图片/images/0/GraspImage" + std::to_string(i) + ".jpg";
-                        printf("(%zu) %d ", i, labels[i]);
-                        printf("move from %s to %s\n", old_path.c_str(), new_path.c_str());
-
-                        rename(old_path.c_str(), new_path.c_str()); // 移动文件
+                // 单独显示各个抓取姿态以及点云
+                for(int i = 0; i < hands.size(); i++) {
+//                    if (! hands[i]->isFullAntipodal()) {
+                    if (1) {
+                        std::cout << "sample: " << hands[i]->getSample().transpose() << std::endl;
+//                        std::cout << "grasp orientation:\n" << hands[i]->getFrame() << std::endl;
+//                        std::cout << "grasp position: " << hands[i]->getPosition().transpose() << std::endl << std::endl;
+                        printf("lable%d: %d\n", i, labels[i]);
+                        plot.plotValidHand(*hands[i], cloud.getCloudProcessed(),
+                                           mesh.getCloudProcessed(), "Antipodal Hand" + std::to_string(i),
+                                           params.hand_geometry_, true);
+                        showImage(*images[i]); // 显示多通道图像
                     }
                 }
-                plot.plotValidHands(valid_hands, cloud.getCloudProcessed(),
-                                    mesh.getCloudProcessed(), "Antipodal Hands",
-                                    params.hand_geometry_);
-                // plot.plotFingers3D(valid_hands, cloud.getCloudProcessed(), "Antipodal
-                // Hands",
-                //                    params.hand_geometry_);
+
+
+
+                // 分开显示有效和无效抓取姿态
+//                std::vector<std::unique_ptr<candidate::Hand>> valid_hands;
+//                for (size_t i = 0; i < hands.size(); i++) {
+//                //    printf("(%zu) label: %d\n", i, labels[i]);
+//                    if (hands[i]->isFullAntipodal()) { // 有效抓取姿态
+//                        std::string old_path = "/home/sdhm/图片/images/GraspImage" + std::to_string(i) + ".jpg";
+//                        std::string new_path = "/home/sdhm/图片/images/1/GraspImage" + std::to_string(i) + ".jpg";
+//                        printf("(%zu) %d ", i, labels[i]);
+//                        printf("move from %s to %s\n", old_path.c_str(), new_path.c_str());
+//
+//                        rename(old_path.c_str(), new_path.c_str()); // 移动文件
+//
+//                        valid_hands.push_back(std::move(hands[i]));
+//                    }
+//                    else { // 无效抓取姿态
+//                        std::string old_path = "/home/sdhm/图片/images/GraspImage" + std::to_string(i) + ".jpg";
+//                        std::string new_path = "/home/sdhm/图片/images/0/GraspImage" + std::to_string(i) + ".jpg";
+//                        printf("(%zu) %d ", i, labels[i]);
+//                        printf("move from %s to %s\n", old_path.c_str(), new_path.c_str());
+//
+//                        rename(old_path.c_str(), new_path.c_str()); // 移动文件
+//                    }
+//                }
+//                plot.plotValidHands(valid_hands, cloud.getCloudProcessed(),
+//                                    mesh.getCloudProcessed(), "Antipodal Hands",
+//                                    params.hand_geometry_);
 
                 return 0;
             }

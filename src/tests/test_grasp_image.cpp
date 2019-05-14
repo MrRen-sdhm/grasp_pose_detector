@@ -61,7 +61,7 @@ int DoMain(int argc, char *argv[]) {
   hand_search_params.hand_geometry_ = hand_geom;
 
   // Local hand search parameters
-  hand_search_params.num_samples_ = 20;
+  hand_search_params.num_samples_ = 50;
   hand_search_params.num_threads_ = 1;
   hand_search_params.nn_radius_frames_ = 0.01;
   hand_search_params.num_orientations_ = 1;

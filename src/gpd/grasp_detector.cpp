@@ -142,11 +142,14 @@ GraspDetector::GraspDetector(const std::string &config_filename) {
   bool remove_plane = config_file.getValueOfKey<bool>(
       "remove_plane_before_image_calculation", false);
 
+  bool plot_grasp_image = config_file.getValueOfKey<bool>(
+          "plot_grasp_image", false);
+
   // Create object to create grasp images from grasp candidates (used for
   // classification).
   image_generator_ = std::make_unique<descriptor::ImageGenerator>(
       image_geom, hand_search_params.num_threads_,
-      hand_search_params.num_orientations_, false, remove_plane);
+      hand_search_params.num_orientations_, plot_grasp_image, remove_plane);
 
   // Read grasp filtering parameters based on robot workspace and gripper width.
   workspace_grasps_ = config_file.getValueOfKeyAsStdVectorDouble(

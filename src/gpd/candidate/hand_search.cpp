@@ -149,7 +149,7 @@ std::vector<std::unique_ptr<candidate::HandSet>> HandSearch::evalHands(
 
   // possible angles used for hand orientations
   const Eigen::VectorXd angles_space = Eigen::VectorXd::LinSpaced(
-      params_.num_orientations_ + 1, -1.0 * M_PI / 2.0, M_PI / 2.0);
+      params_.num_orientations_ + 1, -1.0 * M_PI / 4.0, M_PI / 4.0);
 
   // necessary b/c assignment in Eigen does not change vector size
   const Eigen::VectorXd angles = angles_space.head(params_.num_orientations_);

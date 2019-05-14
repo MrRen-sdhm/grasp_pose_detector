@@ -12,13 +12,19 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
+# Torch
+set(CMAKE_PREFIX_PATH "/home/sdhm/libtorch/share/cmake")
+find_package(Torch REQUIRED)
+message(STATUS "Pytorch status:")
+message(STATUS "    libraries: ${TORCH_LIBRARIES}")
+
 # OpenCV
 find_package(OpenCV 3.4 REQUIRED)
 #find_package(OpenCV REQUIRED PATHS /usr/local NO_DEFAULT_PATH)
 
 ## Set compiler optimization flags
-# set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -std=c++14")
-set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++14")
+set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -std=c++14")
+# set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++14")
 # set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare")
 # set(CMAKE_CXX_FLAGS "-O3 -fopenmp -march=native -mfpmath=sse -funroll-loops -fPIC -Wno-deprecated -Wenum-compare") # no improvement
 # set(CMAKE_CXX_FLAGS "-frename-registers -Ofast -march=native -fopenmp -fPIC -Wno-deprecated -Wenum-compare") # no improvement
@@ -136,6 +142,8 @@ add_executable(${PROJECT_NAME}_cem_detect_grasps src/cem_detect_grasps.cpp)
 add_executable(${PROJECT_NAME}_detect_grasps src/detect_grasps.cpp)
 add_executable(${PROJECT_NAME}_generate_candidates src/generate_candidates.cpp)
 add_executable(${PROJECT_NAME}_label_grasps src/label_grasps.cpp)
+add_executable(${PROJECT_NAME}_test_torch src/test_torch.cpp)
+add_executable(${PROJECT_NAME}_test_torch_batch src/test_torch_batch.cpp)
 add_executable(${PROJECT_NAME}_test_grasp_image src/tests/test_grasp_image.cpp)
 # add_executable(${PROJECT_NAME}_test_conv_layer src/tests/test_conv_layer.cpp)
 # add_executable(${PROJECT_NAME}_test_hdf5 src/tests/test_hdf5.cpp)
@@ -262,6 +270,20 @@ target_link_libraries(${PROJECT_NAME}_label_grasps
         ${PROJECT_NAME}_config_file
         ${PCL_LIBRARIES})
 
+target_link_libraries(${PROJECT_NAME}_test_torch
+        ${PROJECT_NAME}_grasp_detector
+        ${PROJECT_NAME}_config_file
+        ${PCL_LIBRARIES}
+        ${TORCH_LIBRARIES}
+        )
+
+target_link_libraries(${PROJECT_NAME}_test_torch_batch
+        ${PROJECT_NAME}_grasp_detector
+        ${PROJECT_NAME}_config_file
+        ${PCL_LIBRARIES}
+        ${TORCH_LIBRARIES}
+        )
+
 target_link_libraries(${PROJECT_NAME}_cem_detect_grasps
         ${PROJECT_NAME}_sequential_importance_sampling
         ${PROJECT_NAME}_config_file
@@ -283,6 +305,12 @@ set_target_properties(${PROJECT_NAME}_detect_grasps
 
 set_target_properties(${PROJECT_NAME}_label_grasps
         PROPERTIES OUTPUT_NAME label_grasps PREFIX "")
+
+set_target_properties(${PROJECT_NAME}_test_torch
+        PROPERTIES OUTPUT_NAME test_torch PREFIX "")
+
+set_target_properties(${PROJECT_NAME}_test_torch_batch
+        PROPERTIES OUTPUT_NAME test_torch_batch PREFIX "")
 
 set_target_properties(${PROJECT_NAME}_grasp_detector
         PROPERTIES OUTPUT_NAME gpd)

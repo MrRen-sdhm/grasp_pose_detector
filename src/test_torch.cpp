@@ -1,5 +1,6 @@
 #include <string>
 #include <stdio.h>
+#include <time.h>
 
 #include <gpd/grasp_detector.h>
 #include <gpd/descriptor/image_15_channels_strategy.h>
@@ -7,6 +8,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/hdf.hpp>
 #include <opencv2/opencv.hpp>
+
+#include <boost/timer.hpp>
+
 
 using namespace cv;
 
@@ -351,7 +355,6 @@ namespace gpd {
             }
 
             // NOTE 将一批图像写入hdf5
-
             int DoTest(int argc, char *argv[]) {
                 // Read arguments from command line.
                 if (argc < 4) {
@@ -430,27 +433,39 @@ namespace gpd {
                 detector.createGraspImages(cloud, hands, images);
 
                 std::vector<int> labels = detector.evalGroundTruth(mesh, hands);
-                for(size_t i = 0; i < labels.size(); i++) {
-                    printf("%d ", labels[i]);
-                }
-                printf("\n");
+//                for(size_t i = 0; i < labels.size(); i++) {
+//                    printf("%d ", labels[i]);
+//                }
+//                printf("\n");
 
                 /// *************处理images并作为网络输入，images中为60*60*15的mat ************
-                double t0 = omp_get_wtime();
                 const int channels = 15;
                 const bool use_cuda = true;
                 std:: string module_path = "/home/sdhm/Projects/pytorch_cpp/test.pt";
                 if (use_cuda) module_path = "/home/sdhm/Projects/pytorch_cpp/cuda.pt";
 
                 // Deserialize the ScriptModule from a file using torch::jit::load().
+                boost::timer timer_load;
+                double omp_timer_load = omp_get_wtime();
                 std::shared_ptr<torch::jit::script::Module> module = torch::jit::load(module_path);
+//                cout << "\nLoad module runtime(boost):" << timer_load.elapsed() << "s" << endl;
+                printf("Load module runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_load);
+
                 // Move the module to cuda.
+                boost::timer timer;
+                clock_t start = clock();
+                double omp_timer = omp_get_wtime();
                 if (use_cuda) module->to(at::kCUDA); // TODO: CUDA
+//                cout << "Module to cuda runtime(boost):" << timer.elapsed() << "s" << endl;
+//                cout << "Module to cuda runtime(clock):" << (double)(clock() - start) / CLOCKS_PER_SEC << "s" << endl;
+                printf("Module to cuda runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer);
 
                 // Create a vector of torch inputs.
                 std::vector<at::Tensor> inputs_tuple;
-                std::vector<torch::jit::IValue> input; // NOTE: 待删除
 
+                clock_t start_loop = clock();
+                boost::timer timer_loop_start;
+                double omp_timer_loop = omp_get_wtime();
                 for(size_t i = 0; i < images.size(); i++) {
                     // The channel dimension is the last dimension in OpenCV.
                     at::Tensor tensor_image = torch::from_blob(images[i]->data,
@@ -458,7 +473,6 @@ namespace gpd {
 
                     tensor_image = tensor_image.to(at::kFloat);
                     tensor_image = tensor_image.div(256);
-
 //                    cout << "tensor_image" << tensor_image << endl;
 
                     // Reshape the image for [channels, rows, columns] format of pytorch tensor
@@ -473,30 +487,40 @@ namespace gpd {
                     if (use_cuda) tensor_image = tensor_image.to(torch::kCUDA); // TODO: CUDA
 
                     inputs_tuple.emplace_back(tensor_image);
-                    if (i == 0) input.emplace_back(tensor_image); // NOTE: 待删除
                 }
-                printf("Prepare data runtime: %3.4fs\n.\n", omp_get_wtime() - t0);
-
-                auto output_one = module->forward(input).toTensor(); // NOTE: 待删除
-                cout << "[output_one]\n" << output_one << endl; // NOTE: 待删除
+//                cout << "For loop runtime(boost):" << timer_loop_start.elapsed() << "s" << endl;
+//                cout << "For loop runtime(clock):" << (double)(clock() - start_loop) / CLOCKS_PER_SEC << "s" << endl;
+                printf("For loop runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_loop);
 
                 // Concatenate a batch of tensors.
                 at::Tensor inputs = torch::cat(inputs_tuple, 0);
 
+//                if (use_cuda)  inputs = inputs.cuda();
+
+//                cout << "Inputs generate runtime(boost):" << timer_loop_start.elapsed() << "s" << endl;
+//                cout << "Inputs generate runtime(clock):" << (double)(clock() - start_loop) / CLOCKS_PER_SEC << "s" << endl;
+                printf("Inputs generate runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_loop);
+
                 // Execute the model and turn its output into a tensor.
-                double t_forward = omp_get_wtime();
+                boost::timer timer_forward;
+                clock_t start_forward = clock();
+                double omp_timer_forward = omp_get_wtime();
                 auto output = module->forward({inputs}).toTensor();
-                cout << "[output]\n" << output << endl;
-                printf("Forward runtime: %3.4fs\n.\n", omp_get_wtime() - t_forward);
+//                cout << "[output]\n" << output << endl;
+//                cout << "Forward runtime(boost):" << timer_forward.elapsed() << "s" << endl;
+//                cout << "Forward runtime(clock):" << (double)(clock() - start_forward) / CLOCKS_PER_SEC << "s" << endl;
+                printf("Forward runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_forward);
 
 //                cout << output[0][1] << endl;
                 // 分离各输出
-                auto output_1 = output.slice(1, 0, 1); // 输出1
-                auto output_2 = output.slice(1, 1, 2); // 输出2
+//                auto output_1 = output.slice(1, 0, 1); // 输出1
+//                auto output_2 = output.slice(1, 1, 2); // 输出2
 //                cout << "[output_1]\n" << output_1 << endl;
 //                cout << "[output_2]\n" << output_2 << endl;
 
-                printf("Total runtime: %3.4fs\n.\n", omp_get_wtime() - t0);
+//                cout << "Total runtime(boost):" << timer.elapsed() << "s" << endl;
+//                cout << "Total runtime(clock):" << (double)(clock() - start) / CLOCKS_PER_SEC << "s" << endl;
+                printf("Total runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer);
 
                 /// **************************** 写入hdf5 ******************************
                 printf("\nWrite data to hdf5...\n");
@@ -530,14 +554,47 @@ int main(int argc, char *argv[]) {
 eigen_cpu:
 Total runtime: 9.8501s
 
-libtorch_gpu:
-Prepare data runtime: 1.5590s
-Forward runtime: 0.1971s
-Total runtime: 2.4696s
+cpu
+Created 3200 images in 2.1616s
+Load module runtime(omp): 0.048851s
+Module to cuda runtime(omp): 0.000000s
+For loop runtime(omp): 0.588202s
+Inputs generate runtime(omp): 0.878818s
+Forward runtime(omp): 16.362420s
+Total runtime(omp): 17.241315s
 
-libtorch_cpu:
-Prepare data runtime: 0.2670s
-Forward runtime: 15.4155s
-Total runtime: 15.9426s
+gpu
+Created 3200 images in 1.5468s
+Load module runtime(omp): 1.151793s
+Module to cuda runtime(omp): 0.000017s
+For loop runtime(omp): 0.376890s
+Inputs generate runtime(omp): 0.380632s
+Forward runtime(omp): 0.877071s
+Total runtime(omp): 1.257801s
+
+*/
+
+/// num_samples = 100  num_orientations = 4  hand_axes = 1 2  Created 800 images
+/*
+eigen_cpu:
+Total runtime: 2.4604s
+
+cpu
+Created 800 images in 0.4733s
+Load module runtime(omp): 0.041543s
+Module to cuda runtime(omp): 0.000000s
+For loop runtime(omp): 0.083738s
+Inputs generate runtime(omp): 0.137862s
+Forward runtime(omp): 3.774969s
+Total runtime(omp): 3.912866s
+
+gpu
+Created 800 images in 0.4678s
+Load module runtime(omp): 0.957725s
+Module to cuda runtime(omp): 0.000016s
+For loop runtime(omp): 0.108117s
+Inputs generate runtime(omp): 0.109781s
+Forward runtime(omp): 0.721321s
+Total runtime(omp): 0.831143s
 
 */

@@ -268,7 +268,7 @@ namespace gpd {
         int test_offset = 0;
 
         for (int i = 0; i < num_objects; i++) {
-            printf("\033[0;31m%s\033[0m%d/%d: %s\n\n", "======> Generating images for object ", i, num_objects, objects[i].c_str());
+            printf("\033[0;31m%s\033[0m%d/%d: %s\n\n", "======> Generating images for object ", i+1, num_objects, objects[i].c_str());
             double t0 = omp_get_wtime();
 
             // Load mesh for ground truth.

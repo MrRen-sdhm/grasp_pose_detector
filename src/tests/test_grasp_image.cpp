@@ -103,7 +103,9 @@ int DoMain(int argc, char *argv[]) {
   // Image parameters
   descriptor::ImageGeometry image_geom;
   image_geom.depth_ = 0.06;
-  image_geom.height_ = 0.02;
+
+
+  image_geom.height_ = 0.04;
   image_geom.outer_diameter_ = 0.12;
   image_geom.size_ = 60;
   image_geom.num_channels_ = 15;

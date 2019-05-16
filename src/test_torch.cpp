@@ -4,6 +4,7 @@
 
 #include <gpd/grasp_detector.h>
 #include <gpd/descriptor/image_15_channels_strategy.h>
+#include <gpd/net/libtorch_classifier.h>
 #include <torch/script.h>
 #include <opencv2/core.hpp>
 #include <opencv2/hdf.hpp>
@@ -466,6 +467,7 @@ namespace gpd {
                 clock_t start_loop = clock();
                 boost::timer timer_loop_start;
                 double omp_timer_loop = omp_get_wtime();
+                printf("---------------channles:%d\n", images[0]->channels());
                 for(size_t i = 0; i < images.size(); i++) {
                     // The channel dimension is the last dimension in OpenCV.
                     at::Tensor tensor_image = torch::from_blob(images[i]->data,
@@ -539,13 +541,107 @@ namespace gpd {
                 return 0;
             }
 
+            int LibtorchTest(int argc, char *argv[]) {
+                // Read arguments from command line.
+                if (argc < 4) {
+                    std::cout << "Error: Not enough input arguments!\n\n";
+                    std::cout << "Usage: label_grasps CONFIG_FILE PCD_FILE MESH_FILE\n\n";
+                    std::cout << "Find grasp poses for a point cloud, PCD_FILE (*.pcd), "
+                                 "using parameters from CONFIG_FILE (*.cfg), and check them "
+                                 "against a mesh, MESH_FILE (*.pcd).\n\n";
+                    return (-1);
+                }
+
+                std::string config_filename = argv[1];
+                std::string pcd_filename = argv[2];
+                std::string mesh_filename = argv[3];
+                if (!checkFileExists(config_filename)) {
+                    printf("Error: CONFIG_FILE not found!\n");
+                    return (-1);
+                }
+                if (!checkFileExists(pcd_filename)) {
+                    printf("Error: PCD_FILE not found!\n");
+                    return (-1);
+                }
+                if (!checkFileExists(mesh_filename)) {
+                    printf("Error: MESH_FILE not found!\n");
+                    return (-1);
+                }
+
+                // Read parameters from configuration file.
+                const double VOXEL_SIZE = 0.003;
+                util::ConfigFile config_file(config_filename);
+                config_file.ExtractKeys();
+                std::vector<double> workspace =
+                        config_file.getValueOfKeyAsStdVectorDouble("workspace", "-1 1 -1 1 -1 1");
+                int num_threads = config_file.getValueOfKey<int>("num_threads", 1);
+                int num_samples = config_file.getValueOfKey<int>("num_samples", 30);
+                bool sample_above_plane =
+                        config_file.getValueOfKey<int>("sample_above_plane", 1);
+                printf("num_threads: %d, num_samples: %d\n", num_threads, num_samples);
+
+                std::string weights_file =
+                        config_file.getValueOfKeyAsString("weights_file", "");
+                int device = config_file.getValueOfKey<int>("device", 1);
+
+                // View point from which the camera sees the point cloud.
+                Eigen::Matrix3Xd view_points(3, 1);
+                view_points.setZero();
+
+                // Load point cloud from file.
+                util::Cloud cloud(pcd_filename, view_points);
+                if (cloud.getCloudOriginal()->size() == 0) {
+                    std::cout << "Error: Input point cloud is empty or does not exist!\n";
+                    return (-1);
+                }
+
+                // Load point cloud from file.
+                util::Cloud mesh(mesh_filename, view_points);
+                if (mesh.getCloudOriginal()->size() == 0) {
+                    std::cout << "Error: Mesh point cloud is empty or does not exist!\n";
+                    return (-1);
+                }
+
+                // Prepare the point cloud.
+                cloud.filterWorkspace(workspace);
+                cloud.voxelizeCloud(VOXEL_SIZE);
+                cloud.calculateNormals(num_threads);
+                cloud.setNormals(cloud.getNormals() * (-1.0));  // NOTE: do not do this! 翻转单视角点云表面法线（坐标系在物体内部时使用）
+                if (sample_above_plane) {
+                    cloud.sampleAbovePlane();
+                }
+                cloud.subsample(num_samples);
+
+                // Prepare the mesh.
+                mesh.calculateNormals(num_threads);
+                mesh.setNormals(mesh.getNormals() * (-1.0)); // NOTE: 翻转 ground truth 的表面法线
+
+                // Detect grasp poses.
+                std::vector<std::unique_ptr<candidate::Hand>> hands;
+                std::vector<std::unique_ptr<cv::Mat>> images;
+                GraspDetector detector(config_filename);
+                detector.createGraspImages(cloud, hands, images);
+
+                std::vector<int> labels = detector.evalGroundTruth(mesh, hands);
+//                for(size_t i = 0; i < labels.size(); i++) {
+//                    printf("%d ", labels[i]);
+//                }
+//                printf("\n");
+
+                /// ************* 利用LibtorchClassifier进行打分 ************
+                detector.detectGrasps(cloud);
+
+                return 0;
+            }
+
         }  // namespace detect_grasps
     }  // namespace apps
 }  // namespace gpd
 
 int main(int argc, char *argv[]) {
-//    return gpd::apps::detect_grasps::DoMain(argc, argv);
-    return gpd::apps::detect_grasps::DoTest(argc, argv);
+//    return gpd::apps::detect_grasps::DoMain(argc, argv); // 测试单张图片
+//    return gpd::apps::detect_grasps::DoTest(argc, argv); // 测试batch图片
+    return gpd::apps::detect_grasps::LibtorchTest(argc, argv); // 测试LibtorchClassifier
 }
 
 /// 运行速度对比

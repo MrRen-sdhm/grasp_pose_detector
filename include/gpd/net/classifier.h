@@ -36,6 +36,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <omp.h>
 
 // OpenCV
 #include <opencv2/core/core.hpp>

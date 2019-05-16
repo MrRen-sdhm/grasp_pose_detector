@@ -48,7 +48,7 @@ class Net(nn.Module):
         return x
 
 
-use_cuda = True
+use_cuda = False
 input_channels = 15
 pre_trained_model = '/home/sdhm/Projects/gpd2/pytorch/model_lenet_new_15ch_87.34.pwf'
 
@@ -75,7 +75,7 @@ else:
     traced_script_module.save('cpu.pt')
 
 # test
-test_set = H5Dataset('/home/sdhm/Projects/gpd2/models/new/15channels/test.h5', 0, 1)
+test_set = H5Dataset('/home/sdhm/Projects/gpd2/models/new/15channels/1objects/test.h5', 0, 1)
 test_loader = torchdata.DataLoader(test_set, batch_size=64, shuffle=True)
 with torch.no_grad():
     for data in test_loader:

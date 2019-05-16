@@ -116,7 +116,7 @@ def eval(model, test_loader, device):
 
 def adjust_learning_rate(optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    lr = learning_rate * (0.1 ** (epoch // 50))
+    lr = learning_rate * (0.1 ** (epoch // 30))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
@@ -128,7 +128,7 @@ if len(sys.argv) < 4:
 
 with h5py.File(sys.argv[1], 'r') as db:
     num_train = len(db['images']) # 不可用！这样获得的是整个数据库的大小 =======================================================
-    num_train = 49560
+    num_train = 79000
 print('Have', num_train, 'total training examples')
 num_epochs = 100
 max_in_memory = 300000
@@ -153,7 +153,7 @@ print('Loading data ...')
 input_channels = int(sys.argv[3])
 net = Net(input_channels)
 # load the pre trained net work
-net.load_state_dict(torch.load('model_lenet_new_15ch_87.34.pwf')) ######################## 导入预训练模型
+net.load_state_dict(torch.load('model_lenet_new_15ch_93.83.pwf')) ######################## 导入预训练模型
 print(net)
 
 print('Copying network to GPU ...')
@@ -164,9 +164,9 @@ criterion = nn.CrossEntropyLoss()
 
 learning_rate = 0.001
 # optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9) # not tested
-optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9, weight_decay=0.0005) # not tested
+# optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9, weight_decay=0.0005) # not tested
 
-# optimizer = optim.Adam(net.parameters(), lr=learning_rate, weight_decay=0.001) # works well
+optimizer = optim.Adam(net.parameters(), lr=learning_rate, weight_decay=0.0005) # works well
 
 # optimizer = optim.Adam(net.parameters(), lr=0.00001, weight_decay=0.001) # works well
 # optimizer = optim.Adam(net.parameters(), lr=0.000001, weight_decay=0.001) # works well
@@ -176,7 +176,7 @@ optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9, weight_d
 
 with h5py.File(sys.argv[1], 'r') as db:
     num_test = len(db['images']) # 不可用！这样获得的是整个数据库的大小 ========================================================
-    num_test = 25690
+    num_test = 39000
 print('Have', num_test, 'total testing examples')
 
 test_set = H5Dataset(sys.argv[2], 0, num_test)

@@ -2,20 +2,21 @@
 
 - 测试数据标注
 
-  ```
+  ```bash
   ./label_grasps ../cfg/label_params.cfg ../tutorials/red_bull_1.pcd ../tutorials/red_bull_gt.pcd
   ```
 
 - 训练网络
 
-  ```
-  python3 train_net3.py /home/sdhm/Projects/gpd2/models/new/15channels/train.h5 /home/sdhm/Projects/gpd2/models/new/15channels/test.h5 15
+  ```bash
+  python3 train_net3_new.py /home/sdhm/Projects/gpd2/models/new/15channels/train.h5 /home/sdhm/Projects/gpd2/models/new/15channels/4objects/test.h5 15
   ```
 
-- 测试抓取姿态生成
+- 测试eigen抓取姿态生成
 
-  ```
+  ```bash
   ./detect_grasps ../cfg/eigen_params.cfg ../tutorials/krylon.pcd
+  ./detect_grasps ../cfg/eigen_params.cfg /home/sdhm/图片/kinect2点云样本/0004_cloud.pcd
   ```
 
 
@@ -41,9 +42,49 @@ const Eigen::VectorXd angles_space = Eigen::VectorXd::LinSpaced(
     params_.num_orientations_ + 1, -1.0 * M_PI / 6.0, M_PI / 6.0);
 ```
 
-```
+```c++
 finger_hand.cpp:控制手靠近物体的步长，可理解为距离物体的最小距离
 // Attempt to deepen hand (move as far onto the object as possible without
 // collision).
 const double DEEPEN_STEP_SIZE = 0.01;
 ```
+
+
+
+## Libtorch使用
+
+- eigen与libtorch切换：
+
+  修改classifier.cpp
+
+```C++
+//#include <gpd/net/eigen_classifier.h>
+#include <gpd/net/libtorch_classifier.h>
+
+//  return std::make_shared<EigenClassifier>(model_file, weights_file, device,
+//                                           batch_size);
+  return std::make_shared<LibtorchClassifier>(model_file, weights_file, device,
+                                           batch_size);
+```
+
+​	修改CmakeLists.txt
+
+```cmake
+# eigen
+#  add_library(${PROJECT_NAME}_conv_layer src/${PROJECT_NAME}/net/conv_layer.cpp)
+#  add_library(${PROJECT_NAME}_dense_layer src/${PROJECT_NAME}/net/dense_layer.cpp)
+#  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/eigen_classifier.cpp)
+#  set(classifier_dep ${PROJECT_NAME}_conv_layer ${PROJECT_NAME}_dense_layer ${OpenCV_LIBRARIES})
+# libtorch
+set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/libtorch_classifier.cpp)
+set(classifier_dep ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
+```
+
+
+
+- 测试Libtorch抓取姿态生成
+
+```bash
+./detect_grasps ../cfg/libtorch_params.cfg /home/sdhm/图片/kinect2点云样本/0004_cloud.pcd
+```
+

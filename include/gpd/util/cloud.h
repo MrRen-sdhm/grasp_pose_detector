@@ -208,6 +208,12 @@ class Cloud {
   void filterObjectRegion(cv::Rect rect);
 
   /**
+  * \brief Get samples inside the object region.
+  * \param[in] Rect a bounding box of the object
+  */
+  void getSamplesRegion(cv::Rect rect);
+
+  /**
    * \brief Filter out samples that lie outside the workspace dimensions.
    * \param[in] workspace a 6-D vector containing the workspace limits: [minX,
    * maxX, minY, maxY, minZ, maxZ]

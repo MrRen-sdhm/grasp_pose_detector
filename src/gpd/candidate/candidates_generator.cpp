@@ -70,6 +70,7 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
     }
 
     // Subsample the samples
+    cloud.filterSamples(params_.workspace_);
     cloud.subsample(params_.num_samples_);
 }
 
@@ -87,9 +88,14 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud, cv::Rect rect
     cloud.calculateNormals(0);
   }
 
+  // Object region filtering
+//  cloud.filterObjectRegion(rect);
+
+  // Get samples from origin cloud
+  cloud.getSamplesRegion(rect);
+
   // Workspace filtering
-  cloud.filterObjectRegion(rect);
-//  cloud.filterWorkspace(params_.workspace_);
+  cloud.filterWorkspace(params_.workspace_);
 
   if(cloud.getCloudProcessed()->isOrganized()) std::cout << "[INFO Organize] Cloud is organized after filterWorkspace." << "\n";
   else std::cout << "[INFO Organize] Cloud is not organized after filterWorkspace." << "\n";

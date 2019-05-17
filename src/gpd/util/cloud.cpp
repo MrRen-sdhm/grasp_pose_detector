@@ -230,6 +230,10 @@ namespace util {
         }
         cloud_processed_ = cloud;
         camera_source_ = camera_source;
+
+
+        if(cloud_processed_->isOrganized()) std::cout << "[INFO Organize] Cloud is organized after filterWorkspace." << "\n";
+        else std::cout << "[INFO Organize] Cloud is not organized after filterWorkspace." << "\n";
     }
 
     void Cloud::filterObjectRegion(cv::Rect rect) {
@@ -311,47 +315,98 @@ namespace util {
         cout << "height:" << cloud_processed_->height << endl;
         cout << "width:" << cloud_processed_->width << endl;
 
+        // TODO: 处理多个物体区域
         int col_start = rect.x;
         int col_end = rect.x + rect.width;
+        int col_center = rect.x + rect.width/2;
 
         cout << "col_start:" << col_start << endl;
         cout << "col_end:" << col_end << endl;
+        cout << "col_center:" << col_center << endl;
 
         int row_start = rect.y;
         int row_end = rect.y + rect.height;
+        int row_center = rect.y + rect.height/2;
 
         cout << "row_start:" << row_start << endl;
         cout << "row_end:" << row_end << endl;
+        cout << "row_center:" << row_center << endl;
 
-        int center_indice = (rect.y + rect.height/2) * cloud_processed_->width + (rect.x + rect.width/2);
-        const pcl::PointXYZRGBA &center_p = cloud_processed_->points[center_indice];
-        float depth = center_p.z;
-        printf("depth:%f\n", depth);
         printf("rect_width:%d rect_height:%d width*height:%d\n", rect.width, rect.height, rect.width*rect.height);
+
+        // 获取中心深度值（避免中心深度不存在-Nan）
+        std::vector<float> depth;
+        std::vector<int> cloud_rect_indices;
+        for (int row = row_center - rect.height/6; row < row_center + rect.height/6; ++row) { // 540
+            for (int col = col_center - rect.width/6; col < col_center + rect.width/6; ++col) { // 960
+                int center_indices = row * cloud_original_->width + col; // 二维索引
+                float depthValue = cloud_original_->points[center_indices].z;
+                cloud_rect_indices.push_back(center_indices);
+                printf("depth[%d %d] (indice: %d): %f\n", row, col, center_indices, depthValue);
+                if (depthValue > 0.01 && depthValue < 2.0){ // 确保有深度信息
+                    depth.push_back(depthValue);
+                }
+            }
+        }
+        auto min_depth = std::min_element(depth.begin(), depth.end());
+        cout << "min_depth:" << *min_depth << endl;
+
+        // 滤除偏离较大的点, 矩形区域内点在同一曲面上, 深度差距不会很大
+        int validPointNum = 0; // 有效点数
+        float centerAvgDepth = 0; // 中心平均深度值
+        for (size_t i = 0; i < depth.size(); i++) {
+            if (depth[i]-*min_depth < 0.05) { // 距离阈值, 超过阈值认为是无效点
+                centerAvgDepth += depth[i];
+                validPointNum++;
+                printf("valid_depth(%zu): %f\n", i, depth[i]);
+            }
+        }
+        centerAvgDepth /= validPointNum;
+        printf("validPointNum:%d centerAvgDepth:%f\n", validPointNum, centerAvgDepth);
+        if (validPointNum < 1) printf("\033[0;31m%s\033[0m\n", "[Error] Can't get obj region center depth.");
 
         Eigen::Matrix3Xd samples(3, rect.width * rect.height);
         int sample_indices_num = 0;
-        std::vector<int> sample_indices;
+        std::vector<int> sample_indices, cloud_obj_indices;
+        // get samples from objects' region
         for (int row = rect.y; row < rect.y + rect.height; ++row) { // 540
             for (int col = rect.x; col < rect.x + rect.width; ++col) { // 960
-                int indices_num = row * cloud_processed_->width + col;
-                const pcl::PointXYZRGBA &p = cloud_processed_->points[indices_num];
-                if (std::abs(p.z-depth) < 0.08 && -1 < p.z && p.z < 1) { // 限制深度
+                int indices_num = row * cloud_original_->width + col; // 二维索引
+                const pcl::PointXYZRGBA &p = cloud_original_->points[indices_num];
+                if (0.01 < p.z && p.z < 2.0 && std::abs(p.z - centerAvgDepth) < 0.08) { // 限制深度
                     if (-1 < p.x && p.x < 1 && -1 < p.y && p.y < 1) {
-                        printf("sample_indices_num:%d x:%f y:%f z:%f\n", sample_indices_num, p.x, p.y, p.z);
                         samples(0, sample_indices_num) = p.x;
                         samples(1, sample_indices_num) = p.y;
                         samples(2, sample_indices_num) = p.z;
 
                         sample_indices_num ++;
                         sample_indices.push_back(sample_indices_num);
+//                        printf("sample_indices_num:%d x:%f y:%f z:%f\n", sample_indices_num, p.x, p.y, p.z);
                     }
+                    cloud_obj_indices.push_back(indices_num);
                 }
             }
         }
 
-        printf("Save samples\n");
+        printf("Get %zu samples from object region.\n", sample_indices.size());
         samples_ = EigenUtils::sliceMatrix(samples, sample_indices);
+
+        // 获取物体矩形框中的点云
+        PointCloudRGB::Ptr cloud(new PointCloudRGB);
+        cloud->points.resize(cloud_obj_indices.size());
+        for (int i = 0; i < cloud_obj_indices.size(); i++) {
+            cloud->points[i] = cloud_original_->points[cloud_obj_indices[i]];
+        }
+
+        // 获取中心矩形框中的点云
+        PointCloudRGB::Ptr cloud_rect(new PointCloudRGB);
+        cloud_rect->points.resize(cloud_rect_indices.size());
+        for (int i = 0; i < cloud_rect_indices.size(); i++) {
+            cloud_rect->points[i] = cloud_original_->points[cloud_rect_indices[i]];
+        }
+
+        cloud_obj_region_ = cloud;
+        cloud_obj_center_ = cloud_rect;
     }
 
     void Cloud::filterSamples(const std::vector<double> &workspace) {

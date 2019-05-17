@@ -317,10 +317,10 @@ std::vector<std::unique_ptr<candidate::Hand>> GraspDetector::detectGrasps(
   printf("==========\n");
   printf(" TOTAL: %3.4fs\n", t_total);
 
-  const candidate::Hand &hand = *clusters[0];
-  std::cout << "grasp orientation:\n" << hand.getFrame() << std::endl;
-  std::cout << "grasp position: " << hand.getPosition().transpose()
-            << std::endl;
+//  const candidate::Hand &hand = *clusters[0];
+//  std::cout << "grasp orientation:\n" << hand.getFrame() << std::endl;
+//  std::cout << "grasp position: " << hand.getPosition().transpose()
+//            << std::endl;
 
   if (plot_selected_grasps_) {
     plotter_->plotFingers3D(clusters, cloud.getCloudOriginal(),

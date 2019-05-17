@@ -75,54 +75,45 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
 }
 
 void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud, cv::Rect rect) {
-  printf("Processing cloud with %zu points.\n",
-         cloud.getCloudOriginal()->size());
+    printf("Processing cloud with %zu points.\n",
+           cloud.getCloudOriginal()->size());
 
-  util::Plot plotter(0, 0);
-//  plotter.plotCloud(cloud.getCloudOriginal(), "origion");
-  
-  // Calculate surface normals using integral images if possible.
-  if (cloud.getCloudOriginal()->isOrganized() && cloud.getNormals().cols() == 0)
-  {
-    std::cout << "[INFO Organize] Input cloud is organized." << "\n";
-    cloud.calculateNormals(0);
-  }
-
-  // Object region filtering
-//  cloud.filterObjectRegion(rect);
-
-  // Get samples from origin cloud
-  cloud.getSamplesRegion(rect);
-
-  // Workspace filtering
-  cloud.filterWorkspace(params_.workspace_);
-
-  if(cloud.getCloudProcessed()->isOrganized()) std::cout << "[INFO Organize] Cloud is organized after filterWorkspace." << "\n";
-  else std::cout << "[INFO Organize] Cloud is not organized after filterWorkspace." << "\n";
-
-  plotter.plotCloud(cloud.getCloudProcessed(), "filterWorkspace");
-
-  // Voxelization
-  if (params_.voxelize_) {
-    cloud.voxelizeCloud(params_.voxel_size_);
-    
     util::Plot plotter(0, 0);
-    plotter.plotCloud(cloud.getCloudProcessed(), "voxelizeCloud");
-  }
+//    plotter.plotCloud(cloud.getCloudOriginal(), "origion");
 
-  // Normals calculating
-  if(cloud.getNormals().cols() == 0)
-  {
-    cloud.calculateNormals(params_.num_threads_);
-  }
+    // Calculate surface normals using integral images if possible.
+    if (cloud.getCloudOriginal()->isOrganized() && cloud.getNormals().cols() == 0) {
+        std::cout << "[INFO Organize] Input cloud is organized." << "\n";
+        cloud.calculateNormals(0);
+    }
 
-  // Subsample the samples above plane
-  if (params_.sample_above_plane_) {
-    cloud.sampleAbovePlane();
-  }
+    // Get samples from origin cloud
+    cloud.getSamplesRegion(rect);
+    plotter.plotCloud(cloud.getCloudObjRegion(), "ObjRegionCloud");
+    plotter.plotCloud(cloud.getCloudObjCenter(), "ObjCenterCloud");
 
-  // Subsample the samples
-  cloud.subsample(params_.num_samples_);
+    // Workspace filtering
+    cloud.filterWorkspace(params_.workspace_);
+//        plotter.plotCloud(cloud.getCloudProcessed(), "filterWorkspace");
+
+    // Voxelization
+    if (params_.voxelize_) {
+        cloud.voxelizeCloud(params_.voxel_size_);
+//            plotter.plotCloud(cloud.getCloudProcessed(), "voxelizeCloud");
+    }
+
+    // Normals calculating
+    if (cloud.getNormals().cols() == 0) {
+        cloud.calculateNormals(params_.num_threads_);
+    }
+
+    // Subsample the samples above plane
+    if (params_.sample_above_plane_) {
+        cloud.sampleAbovePlane();
+    }
+
+    // Subsample the samples
+    cloud.subsample(params_.num_samples_);
 }
 
 std::vector<std::unique_ptr<Hand>> CandidatesGenerator::generateGraspCandidates(

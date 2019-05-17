@@ -317,6 +317,22 @@ class Cloud {
   }
 
   /**
+  * \brief Return the point cloud inside the object region.
+  * \return the point cloud
+  */
+  const PointCloudRGB::Ptr &getCloudObjRegion() const {
+    return cloud_obj_region_;
+  }
+
+  /**
+  * \brief Return the point cloud inside the object center rectangle.
+  * \return the point cloud
+  */
+  const PointCloudRGB::Ptr &getCloudObjCenter() const {
+    return cloud_obj_center_;
+  }
+
+  /**
    * \brief Return the original point cloud.
    * \return the point cloud
    */
@@ -386,6 +402,8 @@ class Cloud {
 
   PointCloudRGB::Ptr cloud_processed_;
   PointCloudRGB::Ptr cloud_original_;
+  PointCloudRGB::Ptr cloud_obj_region_;
+  PointCloudRGB::Ptr cloud_obj_center_;
 
   // binary matrix: (i,j) = 1 if point j is seen by camera i, 0 otherwise
   Eigen::MatrixXi camera_source_;

@@ -153,6 +153,9 @@ add_library(${PROJECT_NAME}_image_12_channels_strategy src/${PROJECT_NAME}/descr
 add_library(${PROJECT_NAME}_image_15_channels_strategy src/${PROJECT_NAME}/descriptor/image_15_channels_strategy.cpp)
 add_library(${PROJECT_NAME}_image_geometry src/${PROJECT_NAME}/descriptor/image_geometry.cpp)
 
+# namespace detector
+add_library(${PROJECT_NAME}_yolo_detector src/${PROJECT_NAME}/detector/yolo_detector.cpp)
+
 add_library(${PROJECT_NAME}_image_generator src/${PROJECT_NAME}/descriptor/image_generator.cpp)
 
 ## Declare C++ executables
@@ -245,6 +248,9 @@ target_link_libraries(${PROJECT_NAME}_image_strategy
         ${PROJECT_NAME}_hand_set
         ${OpenCV_LIBS})
 
+target_link_libraries(${PROJECT_NAME}_yolo_detector
+        ${OpenCV_LIBS})
+
 
 target_link_libraries(${PROJECT_NAME}_image_1_channels_strategy
         ${PROJECT_NAME}_image_strategy)
@@ -286,6 +292,7 @@ target_link_libraries(${PROJECT_NAME}_detect_grasps
 target_link_libraries(${PROJECT_NAME}_detect_grasps_yolo
         ${PROJECT_NAME}_grasp_detector
         ${PROJECT_NAME}_config_file
+        ${PROJECT_NAME}_yolo_detector
         ${PCL_LIBRARIES})
 
 target_link_libraries(${PROJECT_NAME}_label_grasps

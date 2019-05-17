@@ -19,6 +19,11 @@
   ./detect_grasps ../cfg/eigen_params.cfg /home/sdhm/图片/kinect2点云样本/0004_cloud.pcd
   ```
 
+- 测试在目标区域中采样（yolo）
+
+  ```bash
+  ./detect_grasps_yolo ../cfg/yolo_params.cfg
+  ```
 
 
 ## 数据集创建

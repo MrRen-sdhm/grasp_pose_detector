@@ -56,6 +56,7 @@
 #endif
 
 #include <gpd/util/eigen_utils.h>
+#include <opencv2/core/types.hpp>
 
 namespace gpd {
 namespace util {
@@ -183,6 +184,11 @@ class Cloud {
         const Eigen::Matrix3Xd &view_points);
 
   /**
+  * \brief Remove NANs from the point cloud.
+  */
+  void removeNans();
+
+  /**
    * \brief Remove statistical outliers from the point cloud.
    */
   void removeStatisticalOutliers();
@@ -194,6 +200,12 @@ class Cloud {
    * maxX, minY, maxY, minZ, maxZ]
    */
   void filterWorkspace(const std::vector<double> &workspace);
+
+  /**
+   * \brief Filter out points in the point cloud that lie outside the object region.
+   * \param[in] Rect a bounding box of the object
+   */
+  void filterObjectRegion(cv::Rect rect);
 
   /**
    * \brief Filter out samples that lie outside the workspace dimensions.

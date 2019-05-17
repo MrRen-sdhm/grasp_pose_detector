@@ -93,6 +93,13 @@ class CandidatesGenerator {
   void preprocessPointCloud(util::Cloud &cloud);
 
   /**
+  * \brief Preprocess the point cloud.
+  * \param cloud the point cloud
+  * \param rect the region object exist
+  */
+  void preprocessPointCloud(util::Cloud &cloud, cv::Rect rect);
+
+  /**
    * \brief Generate grasp candidates given a point cloud.
    * \param cloud_cam the point cloud
    * \return list of grasp candidates

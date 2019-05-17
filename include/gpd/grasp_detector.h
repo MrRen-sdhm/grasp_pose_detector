@@ -86,6 +86,13 @@ class GraspDetector {
   void preprocessPointCloud(util::Cloud &cloud);
 
   /**
+  * \brief Preprocess the point cloud.
+  * \param cloud_cam the point cloud
+  * \param rect the region object exist
+  */
+  void preprocessPointCloud(util::Cloud &cloud, cv::Rect rect);
+
+  /**
    * Filter grasps based on the robot's workspace.
    * \param hand_set_list list of grasp candidate sets
    * \param workspace the robot's workspace as a 3D cube, centered at the origin

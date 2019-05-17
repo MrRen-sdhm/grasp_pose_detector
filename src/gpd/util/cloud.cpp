@@ -153,6 +153,12 @@ Cloud::Cloud(const std::string &filename_left,
       Eigen::MatrixXi::Ones(1, cloud_right->size());
 }
 
+void Cloud::removeNans() {
+  std::vector<int> indices;
+  pcl::removeNaNFromPointCloud(*cloud_processed_, *cloud_processed_, indices);
+  printf("Cloud after removing NANs: %zu\n", cloud_processed_->size());
+}
+
 void Cloud::removeStatisticalOutliers() {
   pcl::StatisticalOutlierRemoval<pcl::PointXYZRGBA> sor;
   sor.setInputCloud(cloud_processed_);
@@ -224,6 +230,62 @@ void Cloud::filterWorkspace(const std::vector<double> &workspace) {
   }
   cloud_processed_ = cloud;
   camera_source_ = camera_source;
+}
+
+void Cloud::filterObjectRegion(cv::Rect rect) {
+  // Filter the point cloud.
+
+  cout << "size:" << cloud_processed_->size() << endl;
+  cout << "height:" << cloud_processed_->height << endl;
+  cout << "width:" << cloud_processed_->width << endl;
+
+  int col_start = rect.x;
+  int col_end = rect.x + rect.width;
+
+  cout << "col_start:" << col_start << endl;
+  cout << "col_end:" << col_end << endl;
+
+  int row_start = rect.y;
+  int row_end = rect.y + rect.height;
+
+  cout << "row_start:" << row_start << endl;
+  cout << "row_end:" << row_end << endl;
+
+  int center_indice = (rect.y + rect.height/2) * cloud_processed_->width + (rect.x + rect.width/2);
+  const pcl::PointXYZRGBA &center_p = cloud_processed_->points[center_indice];
+  float depth = center_p.z;
+  printf("depth:%f\n", depth);
+
+  std::vector<int> indices;
+  for (int row = rect.y; row < rect.y + rect.height; ++row) { // 540
+    for (int col = rect.x; col < rect.x + rect.width; ++col) { // 960
+      int indices_num = row * cloud_processed_->width + col;
+      const pcl::PointXYZRGBA &p = cloud_processed_->points[indices_num];
+      if (std::abs(p.z-depth) < 0.08) { // 限制深度
+        indices.push_back(indices_num);
+      }
+
+//      if (row == rect.y) printf("col:%d y:%f x:%f\n", col, p.y, p.x);
+    }
+  }
+
+  PointCloudRGB::Ptr cloud(new PointCloudRGB);
+  cloud->points.resize(indices.size());
+  for (int i = 0; i < indices.size(); i++) {
+    cloud->points[i] = cloud_processed_->points[indices[i]];
+  }
+  if (normals_.cols() > 0) {
+    Eigen::Matrix3Xd normals(3, indices.size());
+    for (int i = 0; i < indices.size(); i++) {
+      normals.col(i) = normals_.col(indices[i]);
+    }
+    normals_ = normals;
+  }
+  cloud_processed_ = cloud;
+
+  cout << "size_after:" << cloud_processed_->size() << endl;
+  cout << "height_after:" << cloud_processed_->height << endl;
+  cout << "width_after:" << cloud_processed_->width << endl;
 }
 
 void Cloud::filterSamples(const std::vector<double> &workspace) {

@@ -334,6 +334,10 @@ void GraspDetector::preprocessPointCloud(util::Cloud &cloud) {
   candidates_generator_->preprocessPointCloud(cloud);
 }
 
+void GraspDetector::preprocessPointCloud(util::Cloud &cloud, cv::Rect rect) {
+  candidates_generator_->preprocessPointCloud(cloud, rect);
+}
+
 std::vector<std::unique_ptr<candidate::HandSet>>
 GraspDetector::filterGraspsWorkspace(
     std::vector<std::unique_ptr<candidate::HandSet>> &hand_set_list,

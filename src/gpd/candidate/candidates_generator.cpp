@@ -12,11 +12,73 @@ CandidatesGenerator::CandidatesGenerator(
 }
 
 void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
+    printf("Processing cloud with %zu points.\n",
+           cloud.getCloudOriginal()->size());
+
+    // util::Plot plotter(0, 0);
+    // plotter.plotCloud(cloud.getCloudOriginal(), "origion");
+
+    // Calculate surface normals using integral images if possible.
+    if (cloud.getCloudOriginal()->isOrganized() && cloud.getNormals().cols() == 0)
+    {
+        std::cout << "[INFO Organize] Input cloud is organized." << "\n";
+        cloud.calculateNormals(0);
+    }
+
+    // Workspace filtering
+    cloud.filterWorkspace(params_.workspace_);
+    if(cloud.getCloudProcessed()->isOrganized()) std::cout << "[INFO Organize] Cloud is organized after filterWorkspace." << "\n";
+    else std::cout << "[INFO Organize] Cloud is not organized after filterWorkspace." << "\n";
+
+    // plotter.plotCloud(cloud.getCloudProcessed(), "filterWorkspace");
+
+    // Perform statistical outlier removal
+    if (0)
+    {
+        util::Plot plotter(0, 0);
+        plotter.plotCloud(cloud.getCloudProcessed(), "before");
+
+        // Create the filtering object
+        pcl::StatisticalOutlierRemoval<pcl::PointXYZRGBA> sor;
+        sor.setInputCloud(cloud.getCloudProcessed());
+        sor.setMeanK(50);
+        sor.setStddevMulThresh(1.0);
+        sor.filter(*cloud.getCloudProcessed());
+        std::cout << "Cloud after removing statistical outliers: " << cloud.getCloudProcessed()->size() << std::endl;
+        if(cloud.getCloudOriginal()->isOrganized()) std::cout << "[INFO Organize] Cloud is organized after statistical filtering." << "\n";
+        else std::cout << "[INFO Organize] Cloud is not organized after statistical filtering." << "\n";
+        plotter.plotCloud(cloud.getCloudProcessed(), "after");
+    }
+
+    // Voxelization
+    if (params_.voxelize_) {
+        cloud.voxelizeCloud(params_.voxel_size_);
+
+//    util::Plot plotter(0, 0);
+//    plotter.plotCloud(cloud.getCloudProcessed(), "voxelizeCloud");
+    }
+
+    // Normals calculating
+    if(cloud.getNormals().cols() == 0)
+    {
+        cloud.calculateNormals(params_.num_threads_);
+    }
+
+    // Subsample the samples above plane
+    if (params_.sample_above_plane_) {
+        cloud.sampleAbovePlane();
+    }
+
+    // Subsample the samples
+    cloud.subsample(params_.num_samples_);
+}
+
+void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud, cv::Rect rect) {
   printf("Processing cloud with %zu points.\n",
          cloud.getCloudOriginal()->size());
 
-  // util::Plot plotter(0, 0);
-  // plotter.plotCloud(cloud.getCloudOriginal(), "origion");
+  util::Plot plotter(0, 0);
+//  plotter.plotCloud(cloud.getCloudOriginal(), "origion");
   
   // Calculate surface normals using integral images if possible.
   if (cloud.getCloudOriginal()->isOrganized() && cloud.getNormals().cols() == 0)
@@ -26,29 +88,13 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
   }
 
   // Workspace filtering
-  cloud.filterWorkspace(params_.workspace_);    
+  cloud.filterObjectRegion(rect);
+//  cloud.filterWorkspace(params_.workspace_);
+
   if(cloud.getCloudProcessed()->isOrganized()) std::cout << "[INFO Organize] Cloud is organized after filterWorkspace." << "\n";
   else std::cout << "[INFO Organize] Cloud is not organized after filterWorkspace." << "\n";
 
-  // plotter.plotCloud(cloud.getCloudProcessed(), "filterWorkspace");
-
-  // Perform statistical outlier removal
-  if (0)
-  {
-    util::Plot plotter(0, 0);
-    plotter.plotCloud(cloud.getCloudProcessed(), "before");
-
-    // Create the filtering object
-    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGBA> sor;
-    sor.setInputCloud(cloud.getCloudProcessed());
-    sor.setMeanK(50);
-    sor.setStddevMulThresh(1.0);
-    sor.filter(*cloud.getCloudProcessed());
-    std::cout << "Cloud after removing statistical outliers: " << cloud.getCloudProcessed()->size() << std::endl;
-    if(cloud.getCloudOriginal()->isOrganized()) std::cout << "[INFO Organize] Cloud is organized after statistical filtering." << "\n";
-    else std::cout << "[INFO Organize] Cloud is not organized after statistical filtering." << "\n";
-    plotter.plotCloud(cloud.getCloudProcessed(), "after");
-  }
+  plotter.plotCloud(cloud.getCloudProcessed(), "filterWorkspace");
 
   // Voxelization
   if (params_.voxelize_) {

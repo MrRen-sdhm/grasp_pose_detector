@@ -234,6 +234,10 @@ namespace gpd {
 //  storeHDF5(train_data, output_root_ + "train.h5");
 //  storeHDF5(test_data, output_root_ + "test.h5");
         printf("Wrote data to training and test databases\n");
+
+        // Wirte dataset size to hdf5 file.
+        write_attributes2HDF5(train_file_path, train_offset);
+        write_attributes2HDF5(test_file_path, test_offset);
     }
 
     void DataGenerator::generateData() {
@@ -444,6 +448,10 @@ namespace gpd {
                test_offset);
 
         printf("Wrote data to training and test databases\n");
+
+        // Wirte dataset size to hdf5 file.
+        write_attributes2HDF5(train_file_path, train_offset);
+        write_attributes2HDF5(test_file_path, test_offset);
     }
 
     void DataGenerator::createDatasetsHDF5(const std::string &filepath,
@@ -659,6 +667,16 @@ namespace gpd {
         h5io->close();
 
         return offset + static_cast<int>(images.size[0]);
+    }
+
+    int DataGenerator::write_attributes2HDF5(const std::string &file_path, int dataset_size) {
+        printf("Write dataset size(%d) attribute to HDF5 file: %s\n", dataset_size, file_path.c_str());
+
+        cv::Ptr<cv::hdf::HDF5> h5io = cv::hdf::open(file_path);
+
+        cv::String attr_name = "size";
+        if (!h5io->atexists(attr_name))
+            h5io->atwrite(dataset_size, attr_name);
     }
 
     void DataGenerator::storeHDF5(const std::vector<Instance> &dataset,

@@ -148,6 +148,11 @@ class DataGenerator {
                      const std::vector<Instance> &dataset, int offset);
 
   /**
+  * \brief Write dataset size attribute to a HDF5 file.
+  */
+  int write_attributes2HDF5(const std::string &file_path, int dataset_size);
+
+  /**
    * \brief Store the dataset as an HDF5 file.
    * \param dataset the dataset
    * \param file_location location where the LMDB is stored

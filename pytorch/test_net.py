@@ -117,8 +117,8 @@ def eval(model, test_loader, device):
 
 
 with h5py.File(sys.argv[1], 'r') as db:
-    num_test = len(db['images']) # 不可用！这样获得的是整个数据库的大小 ===========================================
-    num_test = 80
+    num_test = db.attrs['size']
+
 print('Have', num_test, 'total testing examples')
 
 # Use GPU.

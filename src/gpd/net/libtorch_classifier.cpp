@@ -10,7 +10,14 @@ namespace gpd {
             // Load pretrained network.
             // Deserialize the ScriptModule from a file using torch::jit::load().
             double omp_timer_load = omp_get_wtime();
-            module_ = torch::jit::load(weights_file);
+            try {
+                module_ = torch::jit::load(weights_file);
+            }
+            catch (std::exception &e) {
+                std::cerr << "Couldn't load weights file, please check the weights_file path!" << std::endl;
+                exit(1);
+            }
+
             printf("[Libtorch] Load module runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_load);
 
             // Initialize Libtorch.
@@ -68,18 +75,34 @@ namespace gpd {
 //            std::cout << output << std::endl; // 输出
             printf("[Libtorch] Forward runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_forward);
 
+            at::Tensor pred = at::softmax(output, 1); // softmax
+//            std::cout << "[prediction]\n" << pred << std::endl;
+
             // 分离各输出
 //            auto output_1 = output.slice(1, 0, 1); // 输出1
             auto output_2 = output.slice(1, 1, 2); // 输出2
 //            std::cout << "[output_1]\n" << output_1 << std::endl;
 //            std::cout << "[output_2]\n" << output_2 << std::endl;
 
+            // 分离各预测
+//            auto pred_1 = pred.slice(1, 0, 1); // 预测1
+            auto pred_2 = pred.slice(1, 1, 2); // 预测2
+//            std::cout << "[pred_1]\n" << pred_1 << std::endl;
+//            std::cout << "[pred_2]\n" << pred_2 << std::endl;
+
 //            printf("otput2_size:%d\n", (int)output_2.size(0));
-            for(int i = 0; i < output_2.size(0); i++) {
-                predictions.push_back(output_2[i][0].item<float>());
-//                std::cout << output_2[i][0].item<float>() << std::endl;
+//            for(int i = 0; i < output_2.size(0); i++) {
+//                predictions.push_back(output_2[i][0].item<float>());
+////                std::cout << output_2[i][0].item<float>() << std::endl;
+//            }
+
+//            printf("pred_2_size:%d\n", (int)pred_2.size(0));
+            for(int i = 0; i < pred_2.size(0); i++) {
+                predictions.push_back(pred_2[i][0].item<float>());
+//                std::cout << pred_2[i][0].item<float>() << std::endl;
             }
-//            printf("[Libtorch] Total runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_loop);
+
+            printf("[Libtorch] Total runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_loop);
             return predictions;
         }
 

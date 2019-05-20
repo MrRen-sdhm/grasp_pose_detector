@@ -443,7 +443,7 @@ namespace gpd {
                 const int channels = 15;
                 const bool use_cuda = true;
                 std:: string module_path = "/home/sdhm/Projects/pytorch_cpp/test.pt";
-                if (use_cuda) module_path = "/home/sdhm/Projects/pytorch_cpp/cuda.pt";
+                if (use_cuda) module_path = "/home/sdhm/Projects/gpd2/libtorch/gpu.pt";
 
                 // Deserialize the ScriptModule from a file using torch::jit::load().
                 boost::timer timer_load;
@@ -467,7 +467,6 @@ namespace gpd {
                 clock_t start_loop = clock();
                 boost::timer timer_loop_start;
                 double omp_timer_loop = omp_get_wtime();
-                printf("---------------channles:%d\n", images[0]->channels());
                 for(size_t i = 0; i < images.size(); i++) {
                     // The channel dimension is the last dimension in OpenCV.
                     at::Tensor tensor_image = torch::from_blob(images[i]->data,
@@ -513,12 +512,20 @@ namespace gpd {
 //                cout << "Forward runtime(clock):" << (double)(clock() - start_forward) / CLOCKS_PER_SEC << "s" << endl;
                 printf("Forward runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_forward);
 
-//                cout << output[0][1] << endl;
+                at::Tensor pred = at::softmax(output, 1);
+//                cout << "[prediction]\n" << pred << endl;
+
                 // 分离各输出
 //                auto output_1 = output.slice(1, 0, 1); // 输出1
 //                auto output_2 = output.slice(1, 1, 2); // 输出2
 //                cout << "[output_1]\n" << output_1 << endl;
 //                cout << "[output_2]\n" << output_2 << endl;
+
+                // 分离各预测
+//                auto pred_1 = pred.slice(1, 0, 1); // 预测1
+                auto pred_2 = pred.slice(1, 1, 2); // 预测2
+//                cout << "[pred_1]\n" << pred_1 << endl;
+//                cout << "[pred_2]\n" << pred_2 << endl;
 
 //                cout << "Total runtime(boost):" << timer.elapsed() << "s" << endl;
 //                cout << "Total runtime(clock):" << (double)(clock() - start) / CLOCKS_PER_SEC << "s" << endl;
@@ -640,8 +647,8 @@ namespace gpd {
 
 int main(int argc, char *argv[]) {
 //    return gpd::apps::detect_grasps::DoMain(argc, argv); // 测试单张图片
-//    return gpd::apps::detect_grasps::DoTest(argc, argv); // 测试batch图片
-    return gpd::apps::detect_grasps::LibtorchTest(argc, argv); // 测试LibtorchClassifier
+    return gpd::apps::detect_grasps::DoTest(argc, argv); // 测试batch图片
+//    return gpd::apps::detect_grasps::LibtorchTest(argc, argv); // 测试LibtorchClassifier
 }
 
 /// 运行速度对比

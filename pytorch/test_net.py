@@ -92,19 +92,22 @@ def eval(model, test_loader, device):
         for data in test_loader:
             inputs, labels = data
             # print(inputs)
-            print("inputs_shape:", inputs.shape)
+            # print("inputs_shape:", inputs.shape)
             inputs = inputs.to(device)
+            # print(labels.shape)
             labels = labels.to(device)
 
             # Forward
             outputs = model(inputs)
             # print("inputs:", inputs)
             # print("labels:", labels)
-            _, predicted = torch.max(outputs.data, 1)
+            _, predicted = torch.max(outputs.data, 1) # torch.max(a, 1) 返回每一行中最大值的那个元素，且返回其索引(返回最大元素在这一行的列索引)
             print("outputs.data:", outputs.data)
             print("predicted:", predicted)
 
             total += labels.size(0)
+            print("predicted == labels.long()", predicted == labels.long())
+            print("predicted == labels.long()", (predicted == labels.long()).sum())
             correct += (predicted == labels.long()).sum().item()
 
     accuracy = 100.0 * float(correct) / float(total)
@@ -118,6 +121,7 @@ def eval(model, test_loader, device):
 
 with h5py.File(sys.argv[1], 'r') as db:
     num_test = db.attrs['size']
+    num_test = 5
 
 print('Have', num_test, 'total testing examples')
 
@@ -131,7 +135,8 @@ print('Loading data ...')
 # Create the network.
 input_channels = int(sys.argv[2])
 net = Net(input_channels)
-net.load_state_dict(torch.load('model_lenet_new_15ch_87.34.pwf'))
+net.load_state_dict(torch.load('model_lenet_new_15ch_88.95.pwf'))
+net.load_state_dict(torch.load('model_best_90.19.pt')["state_dict"])
 print(net)
 
 print('Copying network to GPU ...')

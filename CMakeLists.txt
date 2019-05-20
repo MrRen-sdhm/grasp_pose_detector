@@ -73,18 +73,18 @@ elseif(USE_OPENCV STREQUAL "ON")
   message(FATAL_ERROR "Not supported yet")
 else()
   # eigen
-  add_library(${PROJECT_NAME}_conv_layer src/${PROJECT_NAME}/net/conv_layer.cpp)
-  add_library(${PROJECT_NAME}_dense_layer src/${PROJECT_NAME}/net/dense_layer.cpp)
-  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/eigen_classifier.cpp)
-  set(classifier_dep ${PROJECT_NAME}_conv_layer ${PROJECT_NAME}_dense_layer ${OpenCV_LIBRARIES})
+#  add_library(${PROJECT_NAME}_conv_layer src/${PROJECT_NAME}/net/conv_layer.cpp)
+#  add_library(${PROJECT_NAME}_dense_layer src/${PROJECT_NAME}/net/dense_layer.cpp)
+#  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/eigen_classifier.cpp)
+#  set(classifier_dep ${PROJECT_NAME}_conv_layer ${PROJECT_NAME}_dense_layer ${OpenCV_LIBRARIES})
 
   # libtorch
-#  set(CMAKE_PREFIX_PATH "/home/sdhm/libtorch/share/cmake")
-#  find_package(Torch)
-#  message(STATUS "Pytorch status:")
-#  message(STATUS "    libraries: ${TORCH_LIBRARIES}")
-#  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/libtorch_classifier.cpp)
-#  set(classifier_dep ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
+  set(CMAKE_PREFIX_PATH "/home/sdhm/libtorch/share/cmake")
+  find_package(Torch)
+  message(STATUS "Pytorch status:")
+  message(STATUS "    libraries: ${TORCH_LIBRARIES}")
+  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/libtorch_classifier.cpp)
+  set(classifier_dep ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
 endif()
 
 # Optional PCL GPU operations

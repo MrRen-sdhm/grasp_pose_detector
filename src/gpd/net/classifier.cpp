@@ -37,8 +37,8 @@
 #elif defined(USE_OPENCV)
 #include <gpd/net/opencv_classifier.h>
 #else
-#include <gpd/net/eigen_classifier.h>
-//#include <gpd/net/libtorch_classifier.h>
+//#include <gpd/net/eigen_classifier.h>
+#include <gpd/net/libtorch_classifier.h>
 
 #endif
 
@@ -58,10 +58,10 @@ std::shared_ptr<Classifier> Classifier::create(const std::string &model_file,
 #elif defined(USE_OPENCV)
   return std::make_shared<OpenCvClassifier>(model_file, weights_file, device);
 #else
-  return std::make_shared<EigenClassifier>(model_file, weights_file, device,
-                                           batch_size);
-//  return std::make_shared<LibtorchClassifier>(model_file, weights_file, device,
+//  return std::make_shared<EigenClassifier>(model_file, weights_file, device,
 //                                           batch_size);
+  return std::make_shared<LibtorchClassifier>(model_file, weights_file, device,
+                                           batch_size);
 #endif
 }
 

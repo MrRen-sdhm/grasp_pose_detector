@@ -4,6 +4,7 @@
 // System
 #include <string>
 #include <vector>
+#include <exception>
 
 // Libtorch
 #include <torch/script.h>

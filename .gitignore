@@ -15,9 +15,12 @@ bigbird_pcds/datasets_raw/
 .idea/
 
 *.pwf
+*.git
 *.pt
 *.pb
 *.h5
+*.zip
+*.tar
 *.weights
 
 # Executables

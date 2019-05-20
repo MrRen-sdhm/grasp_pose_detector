@@ -12,6 +12,12 @@
   python3 train_net3_new.py /home/sdhm/Projects/gpd2/models/new/15channels/train.h5 /home/sdhm/Projects/gpd2/models/new/15channels/4objects/test.h5 15
   ```
 
+- 测试网络
+
+- ```
+  python test_net.py /home/sdhm/Projects/gpd2/models/new/15channels/4objects/test.h5 15
+  ```
+
 - 测试eigen抓取姿态生成
 
   ```bash

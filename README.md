@@ -1,5 +1,15 @@
 ## Grasp Pose Detector
 
+- 编译安装
+
+  ```
+  cd grasp_pose_detector
+  mkdir build && cd build
+  cmake ..
+  make -j
+  sudo make install
+  ```
+
 - 测试数据标注
 
   ```bash
@@ -14,7 +24,7 @@
 
 - 测试网络
 
-- ```
+  ```
   python test_net.py /home/sdhm/Projects/gpd2/models/new/15channels/4objects/test.h5 15
   ```
 
@@ -99,3 +109,8 @@ set(classifier_dep ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
 ./detect_grasps ../cfg/libtorch_params.cfg /home/sdhm/图片/kinect2点云样本/0004_cloud.pcd
 ```
 
+
+
+## 模型训练
+
+- 

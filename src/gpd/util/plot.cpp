@@ -232,7 +232,7 @@ namespace gpd {
 
           Eigen::Vector3d hand_rgb;
           if (use_same_color) {
-            hand_rgb << 0.0, 0.5, 0.5;
+            hand_rgb << 0.0, 0.0, 1.0;
           }
 
           for (int i = 0; i < hand_list.size(); i++) {
@@ -258,6 +258,53 @@ namespace gpd {
           runViewer(viewer);
         }
 
+        void Plot::plotFingers3DCloudMesh(
+                const std::vector<std::unique_ptr<candidate::Hand>> &hand_list,
+                const PointCloudRGBA::Ptr &cloud, const PointCloudRGBA::Ptr &mesh, const std::string &str,
+                const candidate::HandGeometry &geometry, bool use_same_color) {
+            PCLVisualizer viewer = createViewer(str);
+
+            float min = std::numeric_limits<float>::max();
+            float max = std::numeric_limits<float>::min();
+            for (int i = 0; i < hand_list.size(); i++) {
+                if (hand_list[i]->getScore() < min) {
+                    min = hand_list[i]->getScore();
+                }
+                if (hand_list[i]->getScore() > max) {
+                    max = hand_list[i]->getScore();
+                }
+            }
+
+            Eigen::Vector3d hand_rgb;
+            if (use_same_color) {
+                hand_rgb << 0.0, 0.0, 1.0;
+            }
+
+            for (int i = 0; i < hand_list.size(); i++) {
+                if (!use_same_color) {
+                    float c = (hand_list[i]->getScore() - min) / (max - min);
+                    if (c <= 0.33) {
+                        hand_rgb << c, 0.0, 0.0;
+                    } else if (c <= 0.66) {
+                        hand_rgb << c, c, 0.0;
+                    } else {
+                        hand_rgb << 0.0, c, 0.0;
+                    }
+                }
+                plotHand3D(viewer, *hand_list[i], geometry, i, hand_rgb);
+            }
+
+            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGBA> color_handler (cloud, 255, 0, 0);
+            viewer->addPointCloud(cloud, color_handler, "cloud");
+
+            viewer->addPointCloud<pcl::PointXYZRGBA>(mesh, "mesh");
+
+            viewer->setPointCloudRenderingProperties(
+                    pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
+
+            runViewer(viewer);
+        }
+
         void Plot::plotAntipodalHand(
                 const candidate::Hand &hand,
                 const PointCloudRGBA::Ptr &cloud, const std::string &str,
@@ -280,6 +327,34 @@ namespace gpd {
                   pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
 
           runViewer(viewer);
+        }
+
+        void Plot::plotAntipodalHandsCloudMesh(
+                const std::vector<std::unique_ptr<candidate::Hand>> &hand_list,
+                const PointCloudRGBA::Ptr &cloud, const PointCloudRGBA::Ptr &mesh, const std::string &str,
+                const candidate::HandGeometry &geometry) {
+            PCLVisualizer viewer = createViewer(str);
+
+            Eigen::Vector3d antipodal_color;
+            Eigen::Vector3d non_antipodal_color;
+            antipodal_color << 0.0, 0.7, 0.0;
+            non_antipodal_color << 0.7, 0.0, 0.0;
+
+            for (int i = 0; i < hand_list.size(); i++) {
+                Eigen::Vector3d color =
+                        hand_list[i]->isFullAntipodal() ? antipodal_color : non_antipodal_color;
+                plotHand3D(viewer, *hand_list[i], geometry, i, color);
+            }
+
+            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGBA> color_handler (cloud, 255, 0, 0);
+            viewer->addPointCloud(cloud, color_handler, "cloud");
+
+            viewer->addPointCloud<pcl::PointXYZRGBA>(mesh, "mesh");
+
+            viewer->setPointCloudRenderingProperties(
+                    pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
+
+            runViewer(viewer);
         }
 
         void Plot::plotAntipodalHands(
@@ -472,8 +547,8 @@ namespace gpd {
                    "right_finger_" + num, rgb);
           plotCube(viewer, base_center, quat, base_depth, outer_diameter, hand_height,
                    "base_" + num, rgb);
-          plotCube(viewer, approach_center, quat, approach_depth, finger_width,
-                   0.5 * hand_height, "approach_" + num, rgb);
+//          plotCube(viewer, approach_center, quat, approach_depth, finger_width,
+//                   0.5 * hand_height, "approach_" + num, rgb);
         }
 
         void Plot::plotCube(PCLVisualizer &viewer, const Eigen::Vector3d &position,
@@ -848,6 +923,18 @@ namespace gpd {
                   pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1,
                   "registered point cloud");
           runViewer(viewer);
+        }
+
+        void Plot::plotPoints(const PointCloudXYZ::Ptr &points,
+                             const std::string &title) {
+            PCLVisualizer viewer = createViewer(title);
+            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_color_handler(
+                    points, 255, 0, 0);
+            viewer->addPointCloud<pcl::PointXYZ>(points, points_color_handler, "points");
+            viewer->setPointCloudRenderingProperties(
+                    pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1,
+                    "points");
+            runViewer(viewer);
         }
 
         pcl::PointXYZRGBA Plot::eigenVector3dToPointXYZRGBA(const Eigen::Vector3d &v) {

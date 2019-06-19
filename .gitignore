@@ -8,6 +8,7 @@ bin-release/
 build/
 bigbird_pcds/datasets/
 bigbird_pcds/datasets_raw/
+models/gpd_dataset/
 
 # Other files and folders
 .settings/

@@ -74,6 +74,14 @@ class Classifier {
   virtual std::vector<float> classifyImages(
       const std::vector<std::unique_ptr<cv::Mat>> &image_list) = 0;
 
+    /**
+   * \brief Classify grasp candidates as viable grasps or not.
+   * \param point_list the points in the hand closed area.
+   * \return the classified grasp candidates
+   */
+    virtual std::vector<float> classifyPoints(
+            const std::vector<std::unique_ptr<cv::Mat>> &point_list) = 0;
+
   /**
    * \brief Return the batch size.
    * \return the batch size

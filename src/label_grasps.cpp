@@ -116,8 +116,8 @@ namespace gpd {
                 }
 
                 // Prepare the point cloud.
-                cloud.filterWorkspace(workspace);
-                cloud.voxelizeCloud(VOXEL_SIZE);
+//                cloud.filterWorkspace(workspace);
+//                cloud.voxelizeCloud(VOXEL_SIZE);
                 cloud.calculateNormals(num_threads);
                 cloud.setNormals(cloud.getNormals() * (-1.0));  // NOTE: do not do this! 翻转单视角点云表面法线（坐标系在物体内部时使用）
                 if (sample_above_plane) {
@@ -145,14 +145,18 @@ namespace gpd {
                         detector.getHandSearchParameters();
                 util::Plot plot(params.hand_axes_.size(), params.num_orientations_);
 
+                plot.plotCloud(cloud.getCloudOriginal(), "origion");
+
                 // 显示单视角点云表面法线
                 plot.plotNormals(cloud.getCloudOriginal(), cloud.getNormals());
                 // 显示ground truth点云表面法线
-                plot.plotNormals(mesh.getCloudOriginal(), mesh.getNormals());
+//                plot.plotNormals(mesh.getCloudOriginal(), mesh.getNormals());
 
                 // 显示所有抓取姿态
-//                plot.plotAntipodalHands(hands, cloud.getCloudProcessed(), "Labeled Hands",
-//                                        params.hand_geometry_);
+                plot.plotFingers3DCloudMesh(hands, cloud.getCloudProcessed(), mesh.getCloudOriginal(), "candidates",
+                                   params.hand_geometry_);
+                plot.plotAntipodalHandsCloudMesh(hands, cloud.getCloudProcessed(), mesh.getCloudOriginal(), "Labeled Hands",
+                                        params.hand_geometry_);
 
                 // 单独显示各个抓取姿态
 //                for(int i = 0; i < hands.size(); i++) {
@@ -163,19 +167,19 @@ namespace gpd {
 //                }
 
                 // 单独显示各个抓取姿态以及点云
-                for(int i = 0; i < hands.size(); i++) {
-//                    if (! hands[i]->isFullAntipodal()) {
-                    if (1) {
-                        std::cout << "sample: " << hands[i]->getSample().transpose() << std::endl;
-//                        std::cout << "grasp orientation:\n" << hands[i]->getFrame() << std::endl;
-//                        std::cout << "grasp position: " << hands[i]->getPosition().transpose() << std::endl << std::endl;
-                        printf("lable%d: %d\n", i, labels[i]);
-                        plot.plotValidHand(*hands[i], cloud.getCloudProcessed(),
-                                           mesh.getCloudProcessed(), "Antipodal Hand" + std::to_string(i),
-                                           params.hand_geometry_, true);
-                        showImage(*images[i]); // 显示多通道图像
-                    }
-                }
+//                for(int i = 0; i < hands.size(); i++) {
+////                    if (! hands[i]->isFullAntipodal()) {
+//                    if (1) {
+//                        std::cout << "sample: " << hands[i]->getSample().transpose() << std::endl;
+////                        std::cout << "grasp orientation:\n" << hands[i]->getFrame() << std::endl;
+////                        std::cout << "grasp position: " << hands[i]->getPosition().transpose() << std::endl << std::endl;
+//                        printf("lable%d: %d\n", i, labels[i]);
+//                        plot.plotValidHand(*hands[i], cloud.getCloudProcessed(),
+//                                           mesh.getCloudProcessed(), "Antipodal Hand" + std::to_string(i),
+//                                           params.hand_geometry_, true);
+//                        showImage(*images[i]); // 显示多通道图像
+//                    }
+//                }
 
 
 

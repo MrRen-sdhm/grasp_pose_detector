@@ -194,6 +194,13 @@ class Cloud {
   void removeStatisticalOutliers();
 
   /**
+  * \brief Euclidean cluster extraction.
+  * \param[in] Point cloud
+  * \return PointIndices for every cluster
+  */
+  std::vector<pcl::PointIndices> euclideanCluster(const pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &cloud);
+
+  /**
    * \brief Filter out points in the point cloud that lie outside the workspace
    * dimensions.
    * \param[in] workspace a 6-D vector containing the workspace limits: [minX,
@@ -369,6 +376,11 @@ class Cloud {
    * \return the samples (size: 3 x n)
    */
   void setSamples(const Eigen::Matrix3Xd &samples);
+
+  /**
+  * \brief Save the cloud.
+  */
+  void saveCloud(std::string name, PointCloudRGB::Ptr cloud);
 
   /**
    * \brief Set the surface normals.

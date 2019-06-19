@@ -91,6 +91,7 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud, cv::Rect rect
     cloud.getSamplesRegion(rect);
     plotter.plotCloud(cloud.getCloudObjRegion(), "ObjRegionCloud");
     plotter.plotCloud(cloud.getCloudObjCenter(), "ObjCenterCloud");
+//    cloud.saveCloud("../ObjCenterCloud.pcd", cloud.getCloudObjCenter());
 
     // Workspace filtering
     cloud.filterWorkspace(params_.workspace_);

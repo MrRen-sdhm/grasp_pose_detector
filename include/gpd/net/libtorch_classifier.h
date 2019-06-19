@@ -17,14 +17,14 @@
 namespace gpd {
     namespace net {
 
-/**
- *
- * \brief Classify grasp candidates as viable grasps or not with Caffe
- *
- * Classifies grasps as viable or not using a convolutional neural network (CNN)
- *  with the Caffe framework.
- *
- */
+        /**
+         *
+         * \brief Classify grasp candidates as viable grasps or not with Caffe
+         *
+         * Classifies grasps as viable or not using a convolutional neural network (CNN)
+         *  with the Caffe framework.
+         *
+         */
         class LibtorchClassifier : public Classifier {
         public:
             /**
@@ -43,6 +43,14 @@ namespace gpd {
              */
             std::vector<float> classifyImages(
                     const std::vector<std::unique_ptr<cv::Mat>> &image_list);
+
+            /**
+             * \brief Classify grasp candidates as viable grasps or not.
+             * \param point_list the points in the hand closed area.
+             * \return the classified grasp candidates
+             */
+            std::vector<float> classifyPoints(
+                    const std::vector<std::unique_ptr<cv::Mat>> &point_list);
 
             int getBatchSize() const { return batch_size; }
 

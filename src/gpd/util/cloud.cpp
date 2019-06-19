@@ -1,5 +1,6 @@
 #include <gpd/util/cloud.h>
 
+#include <pcl/segmentation/extract_clusters.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/segmentation/sac_segmentation.h>
@@ -167,6 +168,22 @@ namespace util {
         sor.filter(*cloud_processed_);
         printf("Cloud after removing statistical outliers: %zu\n",
                cloud_processed_->size());
+    }
+
+    std::vector<pcl::PointIndices> Cloud::euclideanCluster(const pcl::PointCloud<pcl::PointXYZRGBA>::Ptr &cloud) {
+        // 使用欧式聚类的算法、kd树搜索对点云聚类分割
+        pcl::search::KdTree<pcl::PointXYZRGBA>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGBA>);
+        tree->setInputCloud(cloud);                        // 输入点云
+        std::vector<pcl::PointIndices> cluster_indices;    // 点云团索引
+        pcl::EuclideanClusterExtraction<pcl::PointXYZRGBA> ec; // 欧式聚类对象
+        ec.setClusterTolerance(0.02);                      // 设置近邻搜索的搜索半径为2cm
+        ec.setMinClusterSize(100);                         // 设置一个聚类需要的最少的点数目为100
+        ec.setMaxClusterSize(25000);                       // 设置一个聚类需要的最大点数目为25000
+        ec.setSearchMethod(tree);                          // 设置点云的搜索机制
+        ec.setInputCloud(cloud);
+        ec.extract(cluster_indices);                       //从点云中提取聚类，并将点云索引保存在cluster_indices中
+
+        return cluster_indices;
     }
 
     void Cloud::filterWorkspace(const std::vector<double> &workspace) {
@@ -351,7 +368,7 @@ namespace util {
         auto min_depth = std::min_element(depth.begin(), depth.end());
         cout << "min_depth:" << *min_depth << endl;
 
-        // 滤除偏离较大的点, 矩形区域内点在同一曲面上, 深度差距不会很大
+        // 滤除偏离较大的点, 矩形区域中的点近似在同一曲面上, 深度差距不会很大
         int validPointNum = 0; // 有效点数
         float centerAvgDepth = 0; // 中心平均深度值
         for (size_t i = 0; i < depth.size(); i++) {
@@ -487,7 +504,7 @@ namespace util {
 
         // Copy the voxels into the point cloud.
         cloud_processed_->points.resize(voxels.cols());
-        for (int i = 0; i < voxels.cols(); i++) {
+        for (int j = 0; j < voxels.cols(); j++) {
             cloud_processed_->points[i].getVector3fMap() = voxels.col(i);
         }
 
@@ -829,6 +846,13 @@ namespace util {
         }
 
         void Cloud::setSamples(const Eigen::Matrix3Xd &samples) { samples_ = samples; }
+
+        void Cloud::saveCloud(std::string name, PointCloudRGB::Ptr cloud) {
+            PointCloudRGB::Ptr cloud_out = cloud;
+            cloud_out->width = 1;
+            cloud_out->height = cloud->points.size();
+            pcl::io::savePCDFileASCII(name, *cloud_out);
+        }
 
 }  // namespace util
 }  // namespace gpd

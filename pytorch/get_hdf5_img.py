@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # coding:utf8
 # 提取hdf5文件中存储的图像以及对应的标签
+# python get_hdf5_img.py ../models/gpd_dataset/15channels/1objects_60_002/test.h5
 
 import h5py
 import sys
@@ -18,7 +19,7 @@ print('Have', len(images), 'images')
 
 print(images,"\n",labels)
 
-start_idx , end_idx = 0, 1
+start_idx , end_idx = 0, 100
 images_np = np.array(images[start_idx : end_idx])
 images_num = images_np.shape[0]
 channels_num = images_np.shape[3]

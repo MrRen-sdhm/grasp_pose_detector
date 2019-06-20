@@ -41,6 +41,12 @@
   ./detect_grasps_yolo ../cfg/yolo_params.cfg
   ```
 
+- 使用pointnet分类
+
+  ```
+  ./detect_grasps_pointnet ../cfg/pointnet_params.cfg /home/sdhm/图片/kinect2点云样本/0004_cloud.pcd
+  ```
+
 
 ## 数据集创建
 

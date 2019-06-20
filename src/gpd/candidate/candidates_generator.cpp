@@ -12,8 +12,8 @@ CandidatesGenerator::CandidatesGenerator(
 }
 
 void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
-    printf("Processing cloud with %zu points.\n",
-           cloud.getCloudOriginal()->size());
+    double t0_process = omp_get_wtime();
+    printf("Processing cloud with %zu points.\n", cloud.getCloudOriginal()->size());
 
     // util::Plot plotter(0, 0);
     // plotter.plotCloud(cloud.getCloudOriginal(), "origion");
@@ -27,8 +27,6 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
 
     // Workspace filtering
     cloud.filterWorkspace(params_.workspace_);
-    if(cloud.getCloudProcessed()->isOrganized()) std::cout << "[INFO Organize] Cloud is organized after filterWorkspace." << "\n";
-    else std::cout << "[INFO Organize] Cloud is not organized after filterWorkspace." << "\n";
 
     // plotter.plotCloud(cloud.getCloudProcessed(), "filterWorkspace");
 
@@ -72,11 +70,15 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
     // Subsample the samples
     cloud.filterSamples(params_.workspace_);
     cloud.subsample(params_.num_samples_);
+
+    double t_process = omp_get_wtime() - t0_process;
+    printf("======== CLOUD PROCESS RUNTIME ========\n");
+    printf(" TOTAL: %3.4fs\n\n", t_process);
 }
 
 void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud, cv::Rect rect) {
-    printf("Processing cloud with %zu points.\n",
-           cloud.getCloudOriginal()->size());
+    double t0_process = omp_get_wtime();
+    printf("Processing cloud with %zu points.\n", cloud.getCloudOriginal()->size());
 
     util::Plot plotter(0, 0);
 //    plotter.plotCloud(cloud.getCloudOriginal(), "origion");
@@ -115,6 +117,10 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud, cv::Rect rect
 
     // Subsample the samples
     cloud.subsample(params_.num_samples_);
+
+    double t_process = omp_get_wtime() - t0_process;
+    printf("======== CLOUD PROCESS RUNTIME ========\n");
+    printf(" TOTAL: %3.4fs\n", t_process);
 }
 
 std::vector<std::unique_ptr<Hand>> CandidatesGenerator::generateGraspCandidates(

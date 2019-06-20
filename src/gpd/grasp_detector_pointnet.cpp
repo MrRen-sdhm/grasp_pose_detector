@@ -22,6 +22,7 @@ namespace gpd {
         plot_normals_ = config_file.getValueOfKey<bool>("plot_normals", false);
         plot_samples_ = config_file.getValueOfKey<bool>("plot_samples", true);
         plot_candidates_ = config_file.getValueOfKey<bool>("plot_candidates", false);
+        plot_workspace_ = config_file.getValueOfKey<bool>("plot_workspace", false);
         plot_filtered_candidates_ =
                 config_file.getValueOfKey<bool>("plot_filtered_candidates", false);
         plot_valid_grasps_ =
@@ -34,13 +35,11 @@ namespace gpd {
         printf("plot_normals: %s\n", plot_normals_ ? "true" : "false");
         printf("plot_samples %s\n", plot_samples_ ? "true" : "false");
         printf("plot_candidates: %s\n", plot_candidates_ ? "true" : "false");
-        printf("plot_filtered_candidates: %s\n",
-               plot_filtered_candidates_ ? "true" : "false");
+        printf("plot_workspace: %s\n", plot_workspace_ ? "true" : "false");
+        printf("plot_filtered_candidates: %s\n", plot_filtered_candidates_ ? "true" : "false");
         printf("plot_valid_grasps: %s\n", plot_valid_grasps_ ? "true" : "false");
-        printf("plot_clustered_grasps: %s\n",
-               plot_clustered_grasps_ ? "true" : "false");
-        printf("plot_selected_grasps: %s\n",
-               plot_selected_grasps_ ? "true" : "false");
+        printf("plot_clustered_grasps: %s\n", plot_clustered_grasps_ ? "true" : "false");
+        printf("plot_selected_grasps: %s\n", plot_selected_grasps_ ? "true" : "false");
         printf("==============================================\n");
 
         // Create object to generate grasp candidates.
@@ -108,15 +107,17 @@ namespace gpd {
         printf("==============================================\n");
 
         // Read classification parameters and create classifier.
+        std::string weights_file;
         std::string model_file = config_file.getValueOfKeyAsString("model_file", "");
-        std::string weights_file =
-                config_file.getValueOfKeyAsString("weights_file", "");
+        int device = config_file.getValueOfKey<int>("device", 0);
+        if (device == 0) weights_file = config_file.getValueOfKeyAsString("weights_file_cpu", "");
+        else if (device == 1) weights_file = config_file.getValueOfKeyAsString("weights_file_gpu", "");
+        else weights_file = "";
+
         if (!model_file.empty() || !weights_file.empty()) {
-            int device = config_file.getValueOfKey<int>("device", 0);
             int batch_size = config_file.getValueOfKey<int>("batch_size", 1);
             classifier_ = net::Classifier::create(
-                    model_file, weights_file, static_cast<net::Classifier::Device>(device),
-                    batch_size);
+                    model_file, weights_file, static_cast<net::Classifier::Device>(device), batch_size);
             min_score_ = config_file.getValueOfKey<int>("min_score", 0);
             printf("============ CLASSIFIER ======================\n");
             printf("model_file: %s\n", model_file.c_str());
@@ -132,10 +133,14 @@ namespace gpd {
         bool plot_grasp_image = config_file.getValueOfKey<bool>(
                 "plot_grasp_image", false);
 
+        int grasp_points_num = config_file.getValueOfKey<int>("grasp_points_num", 750);
+        int min_point_limit = config_file.getValueOfKey<int>("grasp_points_num", 50);
+
         // Create object to create grasp points from grasp candidates (used for
         // classification).
-        point_generator_ = std::make_unique<descriptor::PointGenerator>(hand_geom, hand_search_params.num_threads_,
-                                                                        hand_search_params.num_orientations_, plot_grasp_image, remove_plane);
+        point_generator_ = std::make_unique<descriptor::PointGenerator>(
+                hand_geom, hand_search_params.num_threads_, hand_search_params.num_orientations_, grasp_points_num,
+                min_point_limit, plot_grasp_image, remove_plane);
 
         // Read grasp filtering parameters based on robot workspace and gripper width.
         workspace_grasps_ = config_file.getValueOfKeyAsStdVectorDouble(
@@ -224,6 +229,10 @@ namespace gpd {
         if (hand_set_list_filtered.size() == 0) {
             return hands_out;
         }
+
+        if (plot_workspace_) {
+            plotter_->plotCloud(cloud.getCloudProcessed(), "Filtered Grasps Workspace");
+        }
         if (plot_filtered_candidates_) {
             plotter_->plotFingers3D(hand_set_list_filtered, cloud.getCloudOriginal(),
                                     "Filtered Grasps (Aperture, Workspace)", hand_geom);
@@ -241,7 +250,7 @@ namespace gpd {
             return hands_out;
         }
 
-        // TODO: 3. Create points in the hand closed area.
+        // 3. Create points in the hand closing area.
         double t0_points = omp_get_wtime();
         std::vector<std::unique_ptr<candidate::Hand>> hands;
         std::vector<std::unique_ptr<Eigen::Matrix3Xd>> point_groups;
@@ -249,76 +258,76 @@ namespace gpd {
         point_generator_->createPointGroups(cloud, hand_set_list_filtered, point_groups, hands);
         double t_points = omp_get_wtime() - t0_points;
 
-        printf("[INFO] Create points in the hand closed area over.");
+        printf("[INFO] Create points in the hand closing area done.\n");
 
-# if 0
-        // TODO: 4. Classify the grasp candidates by pointnet.
-  double t0_classify = omp_get_wtime();
-  std::vector<float> scores = classifier_->classifyPoints(point_groups);
-  for (int i = 0; i < hands.size(); i++) {
-    hands[i]->setScore(scores[i]);
-  }
-  double t_classify = omp_get_wtime() - t0_classify;
+        // 4. Classify the grasp candidates by pointnet.
+        double t0_classify = omp_get_wtime();
+        std::vector<float> scores = classifier_->classifyPoints(point_groups);
 
-  // 5. Select the <num_selected> highest scoring grasps.
-  hands = selectGrasps(hands);
-  if (plot_valid_grasps_) {
-    plotter_->plotFingers3D(hands, cloud.getCloudOriginal(), "Valid Grasps",
-                            hand_geom);
-  }
 
-  // 6. Cluster the grasps.
-  double t0_cluster = omp_get_wtime();
-  std::vector<std::unique_ptr<candidate::Hand>> clusters;
-  if (cluster_grasps_) {
-    clusters = clustering_->findClusters(hands);
-    printf("Found %d clusters.\n", (int)clusters.size());
-    if (clusters.size() <= 3) {
-      printf(
-          "Not enough clusters found! Adding all grasps from previous step.");
-      for (int i = 0; i < hands.size(); i++) {
-        clusters.push_back(std::move(hands[i]));
-      }
-    }
-    if (plot_clustered_grasps_) {
-      plotter_->plotFingers3D(clusters, cloud.getCloudOriginal(),
-                              "Clustered Grasps", hand_geom);
-    }
-  } else {
-    clusters = std::move(hands);
-  }
-  double t_cluster = omp_get_wtime() - t0_cluster;
+        for (int i = 0; i < hands.size(); i++) {
+            hands[i]->setScore(scores[i]);
+        }
+        double t_classify = omp_get_wtime() - t0_classify;
 
-  // 7. Sort grasps by their score.
-  std::sort(clusters.begin(), clusters.end(), isScoreGreater);
-  printf("======== Selected grasps ========\n");
-  for (int i = 0; i < clusters.size(); i++) {
-    std::cout << "Grasp " << i << ": " << clusters[i]->getScore() << "\n";
-  }
-  printf("Selected the %d best grasps.\n", (int)clusters.size());
-  double t_total = omp_get_wtime() - t0_total;
+        // 5. Select the <num_selected> highest scoring grasps.
+        hands = selectGrasps(hands);
+        if (plot_valid_grasps_) {
+            plotter_->plotFingers3D(hands, cloud.getCloudOriginal(), "Valid Grasps",
+                                    hand_geom);
+        }
 
-  printf("======== RUNTIMES ========\n");
-  printf(" 1. Candidate generation: %3.4fs\n", t_candidates);
-  printf(" 2. Descriptor extraction: %3.4fs\n", t_points);
-  printf(" 3. Classification: %3.4fs\n", t_classify);
-  // printf(" Filtering: %3.4fs\n", t_filter);
-  // printf(" Clustering: %3.4fs\n", t_cluster);
-  printf("==========\n");
-  printf(" TOTAL: %3.4fs\n", t_total);
+        // 6. Cluster the grasps.
+        double t0_cluster = omp_get_wtime();
+        std::vector<std::unique_ptr<candidate::Hand>> clusters;
+        if (cluster_grasps_) {
+            clusters = clustering_->findClusters(hands);
+            printf("Found %d clusters.\n", (int)clusters.size());
+            if (clusters.size() <= 3) {
+                printf("Not enough clusters found! Adding all grasps from previous step.");
+                for (int i = 0; i < hands.size(); i++) {
+                    clusters.push_back(std::move(hands[i]));
+                }
+            }
+            if (plot_clustered_grasps_) {
+                plotter_->plotFingers3D(clusters, cloud.getCloudOriginal(),
+                                        "Clustered Grasps", hand_geom);
+            }
+        } else {
+            clusters = std::move(hands);
+        }
+        double t_cluster = omp_get_wtime() - t0_cluster;
 
-//  const candidate::Hand &hand = *clusters[0];
-//  std::cout << "grasp orientation:\n" << hand.getFrame() << std::endl;
-//  std::cout << "grasp position: " << hand.getPosition().transpose()
-//            << std::endl;
+        // 7. Sort grasps by their score.
+        std::sort(clusters.begin(), clusters.end(), isScoreGreater);
+        printf("======== Selected grasps ========\n");
+        for (int i = 0; i < clusters.size(); i++) {
+            std::cout << "Grasp " << i << ": " << clusters[i]->getScore() << "\n";
+        }
+        printf("Selected the %d best grasps.\n", (int)clusters.size());
+        double t_total = omp_get_wtime() - t0_total;
 
-  if (plot_selected_grasps_) {
-    plotter_->plotFingers3D(clusters, cloud.getCloudOriginal(),
-                            "Selected Grasps", hand_geom, true);
-  }
+        printf("======== RUNTIMES ========\n");
+        printf(" 1. Candidate generation: %3.4fs\n", t_candidates);
+        printf(" 2. Descriptor extraction: %3.4fs\n", t_points);
+        printf(" 3. Classification: %3.4fs\n", t_classify);
+        // printf(" Filtering: %3.4fs\n", t_filter);
+        // printf(" Clustering: %3.4fs\n", t_cluster);
+        printf("==========\n");
+        printf(" TOTAL: %3.4fs\n\n", t_total);
 
-  return clusters;
-#endif
+    //  const candidate::Hand &hand = *clusters[0];
+    //  std::cout << "grasp orientation:\n" << hand.getFrame() << std::endl;
+    //  std::cout << "grasp position: " << hand.getPosition().transpose()
+    //            << std::endl;
+
+        if (plot_selected_grasps_) {
+            plotter_->plotFingers3D(clusters, cloud.getCloudOriginal(),
+                                    "Selected Grasps", hand_geom, false);
+        }
+
+        return clusters;
+
     }
 
     void GraspDetectorPointNet::preprocessPointCloud(util::Cloud &cloud) {
@@ -402,7 +411,7 @@ namespace gpd {
 
     std::vector<std::unique_ptr<candidate::Hand>> GraspDetectorPointNet::selectGrasps(
             std::vector<std::unique_ptr<candidate::Hand>> &hands) const {
-        printf("Selecting the %d highest scoring grasps ...\n", num_selected_);
+//        printf("Selecting the %d highest scoring grasps ...\n", num_selected_);
 
         int middle = std::min((int)hands.size(), num_selected_);
         std::partial_sort(hands.begin(), hands.begin() + middle, hands.end(),
@@ -411,7 +420,7 @@ namespace gpd {
 
         for (int i = 0; i < middle; i++) {
             hands_out.push_back(std::move(hands[i]));
-            printf(" grasp #%d, score: %3.4f\n", i, hands_out[i]->getScore());
+//            printf(" grasp #%d, score: %3.4f\n", i, hands_out[i]->getScore());
         }
 
         return hands_out;

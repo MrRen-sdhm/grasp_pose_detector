@@ -522,7 +522,7 @@ namespace gpd {
                               double hand_depth, double hand_height, int idx,
                               const Eigen::Vector3d &rgb) {
           const double hw = 0.5 * outer_diameter;
-          const double base_depth = 0.02;
+          const double base_depth = 0.03;
           const double approach_depth = 0.07;
 
           Eigen::Vector3d left_bottom =
@@ -563,7 +563,7 @@ namespace gpd {
           viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR,
                                               rgb(0), rgb(1), rgb(2), name);
           viewer->setShapeRenderingProperties(
-                  pcl::visualization::PCL_VISUALIZER_OPACITY, 0.25, name);
+                  pcl::visualization::PCL_VISUALIZER_OPACITY, 0.4, name);
         }
 
         void Plot::plotFrame(PCLVisualizer &viewer, const Eigen::Vector3d &translation,

@@ -41,8 +41,12 @@
 // OpenCV
 #include <opencv2/core/core.hpp>
 
+// Eigen
+#include <Eigen/Dense>
+#include <Eigen/StdVector>
+
 namespace gpd {
-namespace net {
+    namespace net {
 
 /**
  *
@@ -50,46 +54,46 @@ namespace net {
  * viable grasps or not.
  *
  */
-class Classifier {
- public:
-  enum class Device : uint8_t { eCPU = 0, eGPU = 1, eVPU = 2, eFPGA = 3 };
+        class Classifier {
+        public:
+            enum class Device : uint8_t { eCPU = 0, eGPU = 1, eVPU = 2, eFPGA = 3 };
 
-  /**
-   * \brief Create a classifier dependent on build options.
-   * \param model_file filepath to the network model
-   * \param weights_file filepath to the network parameters
-   * \param device target device on which the network is run
-   * \return the classifier
-   */
-  static std::shared_ptr<Classifier> create(const std::string &model_file,
-                                            const std::string &weights_file,
-                                            Device device = Device::eCPU,
-                                            int batch_size = 1);
+            /**
+             * \brief Create a classifier dependent on build options.
+             * \param model_file filepath to the network model
+             * \param weights_file filepath to the network parameters
+             * \param device target device on which the network is run
+             * \return the classifier
+             */
+            static std::shared_ptr<Classifier> create(const std::string &model_file,
+                                                      const std::string &weights_file,
+                                                      Device device = Device::eCPU,
+                                                      int batch_size = 1);
 
-  /**
-   * \brief Classify grasp candidates as viable grasps or not.
-   * \param image_list the list of grasp images
-   * \return the classified grasp candidates
-   */
-  virtual std::vector<float> classifyImages(
-      const std::vector<std::unique_ptr<cv::Mat>> &image_list) = 0;
+            /**
+             * \brief Classify grasp candidates as viable grasps or not.
+             * \param image_list the list of grasp images
+             * \return the classified grasp candidates
+             */
+            virtual std::vector<float> classifyImages(
+                    const std::vector<std::unique_ptr<cv::Mat>> &image_list) = 0;
 
-    /**
-   * \brief Classify grasp candidates as viable grasps or not.
-   * \param point_list the points in the hand closed area.
-   * \return the classified grasp candidates
-   */
-    virtual std::vector<float> classifyPoints(
-            const std::vector<std::unique_ptr<cv::Mat>> &point_list) = 0;
+            /**
+           * \brief Classify grasp candidates as viable grasps or not.
+           * \param point_list the points in the hand closed area.
+           * \return the classified grasp candidates
+           */
+            virtual std::vector<float> classifyPoints(
+                    const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) = 0;
 
-  /**
-   * \brief Return the batch size.
-   * \return the batch size
-   */
-  virtual int getBatchSize() const = 0;
-};
+            /**
+             * \brief Return the batch size.
+             * \return the batch size
+             */
+            virtual int getBatchSize() const = 0;
+        };
 
-}  // namespace net
+    }  // namespace net
 }  // namespace gpd
 
 #endif /* CLASSIFIER_H_ */

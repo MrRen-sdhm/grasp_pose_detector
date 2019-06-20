@@ -143,6 +143,7 @@ namespace gpd {
         bool plot_normals_;              ///< if normals are plotted
         bool plot_samples_;              ///< if samples/indices are plotted
         bool plot_candidates_;           ///< if grasp candidates are plotted
+        bool plot_workspace_;            ///< if grasp workspace are plotted
         bool plot_filtered_candidates_;  ///< if filtered grasp candidates are plotted
         bool plot_valid_grasps_;         ///< if valid grasps are plotted
         bool plot_clustered_grasps_;     ///< if clustered grasps are plotted

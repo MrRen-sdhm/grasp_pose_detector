@@ -5,11 +5,17 @@ namespace gpd {
     namespace descriptor {
 
         PointGenerator::PointGenerator(const candidate::HandGeometry &hand_geometry, int num_threads,
-                                            int num_orientations,bool is_plotting, bool remove_plane)
+                int num_orientations, int grasp_points_num, int min_point_limit, bool is_plotting, bool remove_plane)
                 : hand_geometry_(hand_geometry),
                   num_threads_(num_threads),
                   num_orientations_(num_orientations),
                   remove_plane_(remove_plane) {
+
+            if (grasp_points_num > 100) grasp_points_num_ = grasp_points_num;
+            else grasp_points_num_ = 750;
+
+            if (min_point_limit > 10) min_point_limit_ = min_point_limit;
+            else grasp_points_num_ = 50;
         }
 
         void PointGenerator::createPointGroups(
@@ -40,7 +46,7 @@ namespace gpd {
 
             // Set the radius for the neighborhood search to the largest image dimension.
             Eigen::Vector3d image_dims;
-            image_dims << hand_geometry_.depth_, hand_geometry_.height_/2.0,
+            image_dims << hand_geometry_.depth_, hand_geometry_.height_ / 2.0,
                     hand_geometry_.outer_diameter_;
             double radius = image_dims.maxCoeff();
 
@@ -50,10 +56,8 @@ namespace gpd {
 
             double t_slice = omp_get_wtime();
 
-#ifndef DEBUG
 #ifdef _OPENMP  // parallelization using OpenMP
 #pragma omp parallel for private(nn_indices, nn_dists) num_threads(num_threads_)
-#endif
 #endif
             for (int i = 0; i < hand_set_list.size(); i++) {
                 pcl::PointXYZRGBA sample_pcl;
@@ -81,7 +85,7 @@ namespace gpd {
             int n = hand_set_list.size() * m;
             std::vector<std::vector<std::unique_ptr<Eigen::Matrix3Xd>>> point_groups_list(n);
 
-#ifndef DEBUG
+#if !DEBUG
 #ifdef _OPENMP  // parallelization using OpenMP
 #pragma omp parallel for num_threads(num_threads_)
 #endif
@@ -106,12 +110,13 @@ namespace gpd {
             const std::vector<std::unique_ptr<candidate::Hand>> &hands = hand_set.getHands();
             std::vector<std::unique_ptr<Eigen::Matrix3Xd>> point_groups_list(hands.size());
 
-            printf("\n[INFO] hands size:%zu\n", hands.size());
+            if (DEBUG) printf("\n[INFO] hands size:%zu\n", hands.size());
             for (int i = 0; i < hands.size(); i++) {
                 if (hand_set.getIsValid()(i)) {
-                    point_groups_list[i] = std::make_unique<Eigen::Matrix3Xd>(Eigen::Matrix3Xd::Zero(3, 1000));
+                    point_groups_list[i] = std::make_unique<Eigen::Matrix3Xd>(
+                            Eigen::Matrix3Xd::Zero(3, grasp_points_num_));
                     createPointGroup(nn_points, *hands[i], *point_groups_list[i]);
-                    printf("[INFO] point_groups_list[%d]\n", i);
+                    if (DEBUG) printf("[INFO] point_groups_list[%d]\n", i);
                 }
             }
             return point_groups_list;
@@ -119,13 +124,51 @@ namespace gpd {
 
         void PointGenerator::createPointGroup(const util::PointList &point_list,
                                          const candidate::Hand &hand, Eigen::Matrix3Xd &point_groups) const {
-            // 1. Transform points in neighborhood into the unit image.
-            Eigen::Matrix3Xd point_groups_eigen = transformToUnitImage(point_list, hand);
-            cout << "point_groups_eigen cols: " << point_groups_eigen.cols() << endl;
-            if(point_groups_eigen.cols() > 50) point_groups = point_groups_eigen;
+            std::random_device rd;
+            std::mt19937 gen(rd());
+
+            // 采样点邻域点云转换到手抓坐标系下
+            Eigen::Matrix3Xd point_groups_eigen = transformToHand(point_list, hand);
+            int current_points_num = point_groups_eigen.cols();
+            if (DEBUG) cout << "current_points_num: " << current_points_num << " grasp_points_num: " << grasp_points_num_ << endl;
+
+            if (current_points_num > 0) {
+                if (current_points_num < grasp_points_num_) { // 点数少于目标值, 上采样
+                    // 产生随机数, 可重复 范围：[0, current_points_num-1]
+                    std::uniform_int_distribution<> dis(0, current_points_num - 1);
+                    if (DEBUG) std::cout << "[debug] repetitive random num:" << endl;
+                    for (int i = 0; i < grasp_points_num_; i++) { // 产生grasp_points_num_个随机数
+                        if (i < current_points_num) { // 先采样当前所有点
+                            if (DEBUG) std::cout << i << "(" << i << ") ";
+                            point_groups.col(i) = point_groups_eigen.col(i);
+                        }
+                        else { // 当前点数不够, 后面的点随机重复采样
+                            int random_indice = dis(gen);
+                            if (DEBUG)std::cout << i << "(" << random_indice << ") ";
+                            point_groups.col(i) = point_groups_eigen.col(random_indice);
+                        }
+                    }
+                    if (DEBUG) cout << endl;
+
+                } else { // 点数多于目标值, 下采样
+                    // 产生随机数, 不重复 范围：[0, current_points_num-1]
+                    distinct_uniform_int_distribution<> dis(0, current_points_num - 1);
+                    if (DEBUG) std::cout << "[debug] non-repetitive random num:" << endl;
+                    for (int i = 0; i < grasp_points_num_; i++) { // 产生grasp_points_num_个随机数
+                        int random_indice = dis(gen);
+                        if (DEBUG) std::cout << i << "(" << random_indice << ") ";
+                        point_groups.col(i) = point_groups_eigen.col(random_indice);
+                    }
+                    if (DEBUG) cout << endl;
+                }
+            } else {
+                if (DEBUG) printf("[erro] current_points_num < 0");
+            }
+
+            if (DEBUG) printf("point_groups.cols:%d\n", point_groups.cols());
         }
 
-        Eigen::Matrix3Xd PointGenerator::transformToUnitImage(
+        Eigen::Matrix3Xd PointGenerator::transformToHand(
                 const util::PointList &point_list, const candidate::Hand &hand) const {
             // 1. Transform points and normals in neighborhood into the hand frame.
             const Eigen::Matrix3Xd rotation_p2h = hand.getFrame().transpose(); // 原始点云坐标系到手抓坐标系旋转矩阵
@@ -144,93 +187,112 @@ namespace gpd {
                 const candidate::Hand &hand, const Eigen::Matrix3Xd &points) const {
             std::vector<int> indices;
             const double half_outer_diameter = hand_geometry_.outer_diameter_ / 2.0;
+            const double half_height = hand_geometry_.height_ / 2.0;
 
             const Eigen::Matrix3Xd rotation_h2p = hand.getFrame(); // 手抓坐标系到原始点云坐标系旋转矩阵
             const Eigen::Matrix3Xd rotation_p2h = hand.getFrame().transpose(); // 原始点云坐标系到手抓坐标系旋转矩阵
             const Eigen::Vector3d &position = hand.getPosition();
 
             pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_closing ( new pcl::PointCloud<pcl::PointXYZ> ); // 手抓闭合区域点云
+            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_neibor ( new pcl::PointCloud<pcl::PointXYZ> ); // 采样点邻近点云
 
             // 获取手抓闭合区域点云索引
             for (int i = 0; i < points.cols(); i++) {
+#if DEBUG
                 pcl::PointXYZ p;
-                    // approach
-                if ((points(0, i) > hand.getBottom()) &&
-                    (points(0, i) < hand.getBottom() + hand_geometry_.depth_) &&
-                    // binormal
-                    (points(1, i) > hand.getCenter() - half_outer_diameter) &&
-                    (points(1, i) < hand.getCenter() + half_outer_diameter) &&
-                    // axis
-                    (points(2, i) > -0.5 * hand_geometry_.height_) &&
-                    (points(2, i) < 0.5 * hand_geometry_.height_)) {
-                    indices.push_back(i);
+                pcl::PointXYZ p_neibor;
 
+                p_neibor.x = points(0, i);
+                p_neibor.y = points(1, i);
+                p_neibor.z = points(2, i);
+                cloud_neibor->points.push_back(p_neibor);
+#endif
+
+                if ((points(0, i) > 0) &&  (points(0, i) < hand_geometry_.depth_) && // approach
+                    (points(1, i) > - half_outer_diameter) && (points(1, i) < half_outer_diameter) && // binormal
+                    (points(2, i) > - half_height) && (points(2, i) < half_height)) { // axis
+
+                    indices.push_back(i);
+#if DEBUG
                     p.x = points(0, i);
                     p.y = points(1, i);
                     p.z = points(2, i);
                     cloud_closing->points.push_back(p);
-
+#endif
 //                    cout << "[debug] points_out:" << " x:" << points(0, i) << " y:" <<
 //                                            points(1, i) << " z:" <<  points(2, i) << endl;
                 }
             }
+            if (DEBUG) printf("[INFO] indices size: %zu\n", indices.size());
 
             // 获取手抓闭合区域点云
             Eigen::Matrix3Xd points_close_p2h = util::EigenUtils::sliceMatrix(points, indices);
-            if (points_close_p2h.cols() < 50) return points_close_p2h;
-#if 1
-            // 将手抓坐标系内的点转换回点云坐标系
-            Eigen::Matrix3Xd points_h2p = rotation_h2p * points + position.replicate(1, points.size());
-            pcl::PointCloud<pcl::PointXYZ>::Ptr points_h2p_cloud ( new pcl::PointCloud<pcl::PointXYZ> );
-
-            for (int i = 0; i < indices.size(); i++) {
-                pcl::PointXYZ p;
-                p.x = points_h2p(0, indices[i]);
-                p.y = points_h2p(1, indices[i]);
-                p.z = points_h2p(2, indices[i]);
-//                cout << "[debug] points_h2p:" << " x:" << points_h2p(0, i) << " y:" <<
-//                                              points_h2p(1, i) << " z:" <<  points_h2p(2, i) << endl;
-                points_h2p_cloud->points.push_back(p);
+            if (points_close_p2h.cols() <= 1) { // 闭合区域点数过少
+                if (DEBUG) printf("\033[0;36m%s\033[0m\n", "[INFO] point num in closing area <= 1.");
+                return points_close_p2h;
             }
+#if DEBUG
+            if (points_close_p2h.cols() > 0) {
+//                printf("[INFO] point num too small: %d indice: %zu\n", points_close_p2h.cols(), indices.size());
+//                // 将手抓坐标系内的点转换回点云坐标系
+//                Eigen::Matrix3Xd points_h2p = rotation_h2p * points + position.replicate(1, points.size());
+//                pcl::PointCloud<pcl::PointXYZ>::Ptr points_h2p_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+//
+//                for (int i = 0; i < indices.size(); i++) {
+//                    pcl::PointXYZ p;
+//                    p.x = points_h2p(0, indices[i]);
+//                    p.y = points_h2p(1, indices[i]);
+//                    p.z = points_h2p(2, indices[i]);
+////                cout << "[debug] points_h2p:" << " x:" << points_h2p(0, i) << " y:" <<
+////                                              points_h2p(1, i) << " z:" <<  points_h2p(2, i) << endl;
+//                    points_h2p_cloud->points.push_back(p);
+//                }
 
-            // 可视化显示
-            pcl::visualization::PCLVisualizer viewer ("points in closing area");
-            viewer.setSize(640, 480);
-            viewer.setBackgroundColor(1.0, 1.0, 1.0);
-            viewer.addCoordinateSystem(0.1, "Coordinate");
-            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_color_handler(
-                    cloud_closing, 255, 0, 0);
-            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_h2p_cloud_color_handler(
-                    points_h2p_cloud, 0, 0, 255);
-            pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb (cloud_.getCloudOriginal());
+                // 可视化显示
+                pcl::visualization::PCLVisualizer viewer("points in closing area");
+                viewer.setSize(640, 480);
+                viewer.setBackgroundColor(1.0, 1.0, 1.0);
+                viewer.addCoordinateSystem(0.1, "Coordinate");
+                pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_color_handler(
+                        cloud_closing, 255, 0, 0);
+//                pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_h2p_cloud_color_handler(
+//                        points_h2p_cloud, 0, 0, 255);
+                pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_neibor_color_handler(
+                        cloud_neibor, 255, 0, 0);
+                pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(cloud_.getCloudOriginal());
 
-            // 手抓坐标系下闭合区域点云
-            viewer.addPointCloud<pcl::PointXYZ>(cloud_closing, points_color_handler, "points_p2h");
-            // 原始点云坐标系下闭合区域点云
-            viewer.addPointCloud<pcl::PointXYZ>(points_h2p_cloud, points_h2p_cloud_color_handler, "points_h2p");
-            // 原始点云
-            viewer.addPointCloud<pcl::PointXYZRGBA>(cloud_.getCloudOriginal(), rgb, "cloud");
+                // 手抓坐标系下闭合区域点云
+                viewer.addPointCloud<pcl::PointXYZ>(cloud_closing, points_color_handler, "points_p2h");
+                // 原始点云坐标系下闭合区域点云
+//                viewer.addPointCloud<pcl::PointXYZ>(points_h2p_cloud, points_h2p_cloud_color_handler, "points_h2p");
+                // 原始点云
+                viewer.addPointCloud<pcl::PointXYZRGBA>(cloud_.getCloudOriginal(), rgb, "cloud");
+                // 采样点邻近点云
+//                viewer.addPointCloud<pcl::PointXYZ>(cloud_neibor, points_neibor_color_handler, "cloud_neibor");
 
-            // 原始点云坐标系下手抓
-            Eigen::Vector3d color_hand(0.0, 0.7, 0.0);
-            plotHand3D(viewer, hand, hand_geometry_, 1, color_hand);
+                // 原始点云坐标系下手抓
+                Eigen::Vector3d color_hand(0.0, 0.7, 0.0);
+                plotHand3D(viewer, hand, hand_geometry_, 1, color_hand);
 
-            // 世界坐标系下手抓
-            Eigen::Matrix3d hand_world_frame = rotation_p2h * hand.getFrame();
-            Eigen::Vector3d hand_world_position = rotation_p2h * (hand.getPosition() -
-                                                            position.replicate(1, hand.getSample().size()));
-            Eigen::Vector3d color_hand_world(0.0, 0.7, 0.0);
-            plotHand3D(viewer, hand_world_position, hand_world_frame, hand_geometry_.outer_diameter_,
-                    hand_geometry_.finger_width_, hand_geometry_.depth_, hand_geometry_.height_, 2, color_hand_world);
+                // 世界坐标系下手抓
+                Eigen::Matrix3d hand_world_frame = rotation_p2h * hand.getFrame();
+                Eigen::Vector3d hand_world_position = rotation_p2h * (hand.getPosition() -
+                                                                      position.replicate(1, hand.getSample().size()));
+                Eigen::Vector3d color_hand_world(0.0, 0.7, 0.0);
+                plotHand3D(viewer, hand_world_position, hand_world_frame, hand_geometry_.outer_diameter_,
+                           hand_geometry_.finger_width_, hand_geometry_.depth_, hand_geometry_.height_, 2,
+                           color_hand_world);
 
-            cout << "[debug] hand_world_frame:\n" << hand_world_frame << endl;
-            cout << "[debug] hand_world_position:\n" << hand_world_position << endl;
+                cout << "[debug] hand_world_frame:\n" << hand_world_frame << endl;
+                cout << "[debug] hand_world_position:\n" << hand_world_position << endl;
 
-            viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "points_p2h");
-            viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "points_h2p");
+                viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "points_p2h");
+//                viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "points_h2p");
+//                viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "cloud_neibor");
 
-            while (!viewer.wasStopped ()) {
-                viewer.spinOnce ();
+                while (!viewer.wasStopped()) {
+                    viewer.spinOnce();
+                }
             }
 #endif
             return points_close_p2h;

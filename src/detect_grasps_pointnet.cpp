@@ -71,7 +71,9 @@ int DoMain(int argc, char *argv[]) {
   detector.preprocessPointCloud(cloud);
 
   // Detect grasp poses.
-  detector.detectGrasps(cloud);
+  for (int i = 0 ; i < 3; i++) { // 重复3次以便查看运行时间
+      detector.detectGrasps(cloud);
+  }
 
   return 0;
 }

@@ -9,10 +9,16 @@
 // Libtorch
 #include <torch/script.h>
 
+// Eigen
+#include <Eigen/Dense>
+#include <Eigen/StdVector>
+
 // OpenCV
 #include <opencv2/core/core.hpp>
 
 #include <gpd/net/classifier.h>
+
+#define DEGUBLIBTORCH 0 // use for debug
 
 namespace gpd {
     namespace net {
@@ -50,7 +56,7 @@ namespace gpd {
              * \return the classified grasp candidates
              */
             std::vector<float> classifyPoints(
-                    const std::vector<std::unique_ptr<cv::Mat>> &point_list);
+                    const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups);
 
             int getBatchSize() const { return batch_size; }
 

@@ -29,8 +29,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef IMAGE_GENERATOR_H_
-#define IMAGE_GENERATOR_H_
+#ifndef POINT_GENERATOR_H_
+#define POINT_GENERATOR_H_
 
 #include <sys/stat.h>
 #include <fstream>
@@ -211,4 +211,4 @@ namespace gpd {
     }  // namespace descriptor
 }  // namespace gpd
 
-#endif /* IMAGE_GENERATOR_H_ */
+#endif /* POINT_GENERATOR_H_ */

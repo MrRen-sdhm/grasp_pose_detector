@@ -563,7 +563,7 @@ namespace gpd {
           viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR,
                                               rgb(0), rgb(1), rgb(2), name);
           viewer->setShapeRenderingProperties(
-                  pcl::visualization::PCL_VISUALIZER_OPACITY, 0.4, name);
+                  pcl::visualization::PCL_VISUALIZER_OPACITY, 0.8, name);
         }
 
         void Plot::plotFrame(PCLVisualizer &viewer, const Eigen::Vector3d &translation,

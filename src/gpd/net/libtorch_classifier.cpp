@@ -14,7 +14,10 @@ namespace gpd {
                 module_ = torch::jit::load(weights_file);
             }
             catch (std::exception &e) {
-                std::cerr << "Couldn't load weights file, please check the weights_file path!" << std::endl;
+                if (device == Classifier::Device::eGPU)
+                    std::cerr << "Couldn't load weights file, please check the weights_file path " <<
+                                                       "and ensure the nvidia driver is available!" << std::endl;
+                else std::cerr << "Couldn't load weights file, please check the weights_file path!" << std::endl;
                 exit(1);
             }
 

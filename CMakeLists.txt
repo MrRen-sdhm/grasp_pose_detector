@@ -1,27 +1,23 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(gpd)
-set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_BUILD_TYPE Release)
 
 # Eigen library
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 # PCL
 find_package(PCL 1.8 REQUIRED)
-#find_package(PCL 1.8 REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 # OpenCV
 find_package(OpenCV 3.4 REQUIRED)
-#find_package(OpenCV REQUIRED PATHS /usr/local NO_DEFAULT_PATH)
 
 ## Set compiler optimization flags
 set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -std=c++14")
-# set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++14")
-# set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare")
-# set(CMAKE_CXX_FLAGS "-O3 -fopenmp -march=native -mfpmath=sse -funroll-loops -fPIC -Wno-deprecated -Wenum-compare") # no improvement
-# set(CMAKE_CXX_FLAGS "-frename-registers -Ofast -march=native -fopenmp -fPIC -Wno-deprecated -Wenum-compare") # no improvement
+#set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -std=c++14 -Wall -g2 -ggdb")
+#set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -std=c++14")
 
 ## Specify additional locations of header files
 include_directories(include ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
@@ -119,13 +115,13 @@ endif()
 
 # Generate the shared library from the sources
 add_library(${PROJECT_NAME}_grasp_detector SHARED src/${PROJECT_NAME}/grasp_detector.cpp)
-add_library(${PROJECT_NAME}_grasp_detector_pointnet SHARED src/${PROJECT_NAME}/grasp_detector_pointnet.cpp)
 
 add_library(${PROJECT_NAME}_classifier ${classifier_src})
 target_link_libraries(${PROJECT_NAME}_classifier
         ${classifier_dep})
 
 add_library(${PROJECT_NAME}_clustering src/${PROJECT_NAME}/clustering.cpp)
+add_library(${PROJECT_NAME}_grasp_detector_pointnet src/${PROJECT_NAME}/grasp_detector_pointnet.cpp)
 add_library(${PROJECT_NAME}_sequential_importance_sampling src/${PROJECT_NAME}/sequential_importance_sampling.cpp)
 
 # namespace candidate
@@ -264,7 +260,6 @@ target_link_libraries(${PROJECT_NAME}_image_strategy
 target_link_libraries(${PROJECT_NAME}_yolo_detector
         ${OpenCV_LIBS})
 
-
 target_link_libraries(${PROJECT_NAME}_image_1_channels_strategy
         ${PROJECT_NAME}_image_strategy)
 
@@ -367,12 +362,7 @@ set_target_properties(${PROJECT_NAME}_test_torch
 set_target_properties(${PROJECT_NAME}_grasp_detector
         PROPERTIES OUTPUT_NAME gpd)
 
-set_target_properties(${PROJECT_NAME}_grasp_detector_pointnet
-        PROPERTIES OUTPUT_NAME gpd)
-
-
 # Set the location for library installation
 install(TARGETS ${PROJECT_NAME}_grasp_detector DESTINATION lib)
-install(TARGETS ${PROJECT_NAME}_grasp_detector_pointnet DESTINATION lib)
 
 install(DIRECTORY include/gpd DESTINATION include)

@@ -29,7 +29,7 @@ namespace gpd {
                 // 创建hdf5格式数据集 Hdf5Datasets
                 if(!strcmp(argv[2], "0")) {
                     printf("\033[0;36m%s\033[0m\n", "[Mode] Generate data bigbird.");
-                    generator.generateData();
+                    generator.generateDataBigbird();
                 }
                 // 创建多视角点云 MultiViewCloud
                 else if(!strcmp(argv[2], "1")) {

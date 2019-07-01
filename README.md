@@ -1,12 +1,25 @@
 ## Grasp Pose Detector
 
+- 开发环境
+
+  Ubuntu16.04
+
+- 依赖
+
+  ```
+  Opencv-3.4
+  PCL-1.8.1
+  Eigen-3.2
+  Libtorch-1.0.0
+  ```
+
 - 编译安装
 
   ```
   cd grasp_pose_detector
   mkdir build && cd build
-  cmake ..
-  make -j
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_DATA_GENERATION=ON 
+  make -j*
   sudo make install
   ```
 

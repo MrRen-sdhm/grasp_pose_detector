@@ -252,9 +252,9 @@ namespace gpd {
                 pcl::visualization::PCLVisualizer viewer("points in closing area");
                 viewer.setSize(640, 480);
                 viewer.setBackgroundColor(1.0, 1.0, 1.0);
-                viewer.addCoordinateSystem(0.1, "Coordinate");
+//                viewer.addCoordinateSystem(0.1, "Coordinate");
                 pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_color_handler(
-                        cloud_closing, 255, 0, 0);
+                        cloud_closing, 0, 0, 255);
 //                pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_h2p_cloud_color_handler(
 //                        points_h2p_cloud, 0, 0, 255);
                 pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_neibor_color_handler(
@@ -389,7 +389,7 @@ namespace gpd {
             viewer.setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR,
                                                 rgb(0), rgb(1), rgb(2), name);
             viewer.setShapeRenderingProperties(
-                    pcl::visualization::PCL_VISUALIZER_OPACITY, 0.25, name);
+                    pcl::visualization::PCL_VISUALIZER_OPACITY, 0.8, name);
         }
 
         void PointGenerator::removePlane(const util::Cloud &cloud_cam,

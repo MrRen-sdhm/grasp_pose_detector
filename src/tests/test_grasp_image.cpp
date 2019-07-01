@@ -105,7 +105,7 @@ int DoMain(int argc, char *argv[]) {
   image_geom.depth_ = 0.06;
 
 
-  image_geom.height_ = 0.04;
+  image_geom.height_ = 0.01;
   image_geom.outer_diameter_ = 0.12;
   image_geom.size_ = 60;
   image_geom.num_channels_ = 15;

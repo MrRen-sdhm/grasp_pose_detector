@@ -2,8 +2,8 @@
  Created by Zhenyu Ren.
  */
 
-#ifndef GRASP_DETECTOR_H_
-#define GRASP_DETECTOR_H_
+#ifndef GRASP_DETECTOR_POINTNET_H_
+#define GRASP_DETECTOR_POINTNET_H_
 
 // System
 #include <algorithm>
@@ -165,4 +165,4 @@ namespace gpd {
 
 }  // namespace gpd
 
-#endif /* GRASP_DETECTOR_H_ */
+#endif /* GRASP_DETECTOR_POINTNET_H_ */

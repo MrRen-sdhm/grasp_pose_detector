@@ -52,6 +52,8 @@ namespace gpd {
                 config_file.getValueOfKey<bool>("remove_outliers", false);
         generator_params.sample_above_plane_ =
                 config_file.getValueOfKey<bool>("sample_above_plane", false);
+        generator_params.reverse_normals_ =
+                config_file.getValueOfKey<bool>("reverse_normals", false);
         generator_params.voxelize_ =
                 config_file.getValueOfKey<bool>("voxelize", true);
         generator_params.voxel_size_ =

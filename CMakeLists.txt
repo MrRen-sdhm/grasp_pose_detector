@@ -115,13 +115,13 @@ endif()
 
 # Generate the shared library from the sources
 add_library(${PROJECT_NAME}_grasp_detector SHARED src/${PROJECT_NAME}/grasp_detector.cpp)
+add_library(${PROJECT_NAME}_grasp_detector_pointnet SHARED src/${PROJECT_NAME}/grasp_detector_pointnet.cpp)
 
 add_library(${PROJECT_NAME}_classifier ${classifier_src})
 target_link_libraries(${PROJECT_NAME}_classifier
         ${classifier_dep})
 
 add_library(${PROJECT_NAME}_clustering src/${PROJECT_NAME}/clustering.cpp)
-add_library(${PROJECT_NAME}_grasp_detector_pointnet src/${PROJECT_NAME}/grasp_detector_pointnet.cpp)
 add_library(${PROJECT_NAME}_sequential_importance_sampling src/${PROJECT_NAME}/sequential_importance_sampling.cpp)
 
 # namespace candidate
@@ -362,7 +362,12 @@ set_target_properties(${PROJECT_NAME}_test_torch
 set_target_properties(${PROJECT_NAME}_grasp_detector
         PROPERTIES OUTPUT_NAME gpd)
 
+set_target_properties(${PROJECT_NAME}_grasp_detector_pointnet
+        PROPERTIES OUTPUT_NAME gpd_pointnet)
+
+
 # Set the location for library installation
 install(TARGETS ${PROJECT_NAME}_grasp_detector DESTINATION lib)
+install(TARGETS ${PROJECT_NAME}_grasp_detector_pointnet DESTINATION lib)
 
 install(DIRECTORY include/gpd DESTINATION include)

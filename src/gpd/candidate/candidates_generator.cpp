@@ -23,6 +23,9 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
     {
         std::cout << "[INFO Organize] Input cloud is organized." << "\n";
         cloud.calculateNormals(0);
+        if (params_.reverse_normals_) {
+            cloud.setNormals(cloud.getNormals() * (-1.0));
+        }
     }
 
     // Workspace filtering
@@ -60,6 +63,9 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
     if(cloud.getNormals().cols() == 0)
     {
         cloud.calculateNormals(params_.num_threads_);
+        if (params_.reverse_normals_) {
+            cloud.setNormals(cloud.getNormals() * (-1.0));
+        }
     }
 
     // Subsample the samples above plane

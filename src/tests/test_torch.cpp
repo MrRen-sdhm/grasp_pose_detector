@@ -12,6 +12,8 @@
 
 #include <boost/timer.hpp>
 
+#include <gpd/make_unique.h>
+
 
 using namespace cv;
 

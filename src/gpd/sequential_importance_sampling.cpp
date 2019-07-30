@@ -1,4 +1,5 @@
 #include <gpd/sequential_importance_sampling.h>
+#include <gpd/make_unique.h>
 
 namespace gpd {
 

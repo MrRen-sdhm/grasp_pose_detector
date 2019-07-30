@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR) # Libtorch need cmake 3.0+
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(gpd)
 #set(CMAKE_BUILD_TYPE Release)
 
@@ -12,7 +12,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 # OpenCV
-find_package(OpenCV 3.4.4 REQUIRED)
+find_package(OpenCV 3.4 REQUIRED)
 
 ## Set compiler optimization flags
 set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -std=c++14")
@@ -75,7 +75,7 @@ else()
 #  set(classifier_dep ${PROJECT_NAME}_conv_layer ${PROJECT_NAME}_dense_layer ${OpenCV_LIBRARIES})
 
   # libtorch
-  set(CMAKE_PREFIX_PATH "/home/hustac/libtorch/share/cmake")
+  set(CMAKE_PREFIX_PATH "/home/sdhm/libtorch/share/cmake")
   find_package(Torch)
   message(STATUS "Pytorch status:")
   message(STATUS "    libraries: ${TORCH_LIBRARIES}")

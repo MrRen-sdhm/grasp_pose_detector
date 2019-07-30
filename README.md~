@@ -57,7 +57,7 @@
 - 使用pointnet分类
 
   ```
-  ./detect_grasps_pointnet ../cfg/pointnet_params.cfg /home/hustac/Projects/grasp_pose_detector/data/vo5_NP1_0.pcd
+  ./detect_grasps_pointnet ../cfg/pointnet_params.cfg /home/sdhm/图片/kinect2点云样本/0004_cloud.pcd
   ```
 
 

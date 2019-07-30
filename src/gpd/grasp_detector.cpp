@@ -1,3 +1,4 @@
+#include <gpd/make_unique.h>
 #include <gpd/grasp_detector.h>
 
 namespace gpd {

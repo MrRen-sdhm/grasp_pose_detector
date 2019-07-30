@@ -1,4 +1,6 @@
 #include <gpd/grasp_detector_pointnet.h>
+#include <memory>
+#include <gpd/make_unique.h>
 
 namespace gpd {
 

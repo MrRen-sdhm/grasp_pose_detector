@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <Eigen/StdVector>
+#include <gpd/make_unique.h>
 
 namespace gpd {
 

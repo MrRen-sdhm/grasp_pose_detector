@@ -117,7 +117,7 @@ namespace gpd {
         else weights_file = "";
 
         if (!model_file.empty() || !weights_file.empty()) {
-            int batch_size = config_file.getValueOfKey<int>("batch_size", 1);
+            int batch_size = config_file.getValueOfKey<int>("batch_size", 256);
             classifier_ = net::Classifier::create(
                     model_file, weights_file, static_cast<net::Classifier::Device>(device), batch_size);
             min_score_ = config_file.getValueOfKey<int>("min_score", 0);
@@ -264,7 +264,7 @@ namespace gpd {
 
         // 4. Classify the grasp candidates by pointnet.
         double t0_classify = omp_get_wtime();
-        std::vector<float> scores = classifier_->classifyPoints(point_groups);
+        std::vector<float> scores = classifier_->classifyPointsBatch(point_groups);
 
 
         for (int i = 0; i < hands.size(); i++) {

@@ -87,6 +87,14 @@ namespace gpd {
                     const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) = 0;
 
             /**
+           * \brief Classify grasp candidates as viable grasps or not.
+           * \param point_list the points in the hand closed area.
+           * \return the classified grasp candidates
+           */
+            virtual std::vector<float> classifyPointsBatch(
+                    const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) = 0;
+
+            /**
              * \brief Return the batch size.
              * \return the batch size
              */

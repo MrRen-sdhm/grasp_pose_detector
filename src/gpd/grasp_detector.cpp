@@ -126,7 +126,7 @@ GraspDetector::GraspDetector(const std::string &config_filename) {
       config_file.getValueOfKeyAsString("weights_file", "");
   if (!model_file.empty() || !weights_file.empty()) {
     int device = config_file.getValueOfKey<int>("device", 0);
-    int batch_size = config_file.getValueOfKey<int>("batch_size", 1);
+    int batch_size = config_file.getValueOfKey<int>("batch_size", 256);
     classifier_ = net::Classifier::create(
         model_file, weights_file, static_cast<net::Classifier::Device>(device),
         batch_size);

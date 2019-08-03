@@ -58,12 +58,20 @@ namespace gpd {
             std::vector<float> classifyPoints(
                     const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups);
 
-            int getBatchSize() const { return batch_size; }
+            /**
+             * \brief Classify grasp candidates as viable grasps or not.
+             * \param point_list the points in the hand closed area.
+             * \return the classified grasp candidates
+             */
+            std::vector<float> classifyPointsBatch(
+                    const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups);
+
+            int getBatchSize() const { return batch_size_; }
 
         private:
             std::shared_ptr<torch::jit::script::Module> module_;
             bool use_cuda_;
-            int batch_size;
+            int batch_size_;
 
         };
 

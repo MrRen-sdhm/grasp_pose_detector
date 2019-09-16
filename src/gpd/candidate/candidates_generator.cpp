@@ -78,8 +78,7 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
     cloud.subsample(params_.num_samples_);
 
     double t_process = omp_get_wtime() - t0_process;
-    printf("======== CLOUD PROCESS RUNTIME ========\n");
-    printf(" TOTAL: %3.4fs\n\n", t_process);
+    printf("====> CLOUD PROCESS TIME: %3.4fs\n", t_process);
 }
 
 void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud, cv::Rect rect) {
@@ -125,8 +124,7 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud, cv::Rect rect
     cloud.subsample(params_.num_samples_);
 
     double t_process = omp_get_wtime() - t0_process;
-    printf("======== CLOUD PROCESS RUNTIME ========\n");
-    printf(" TOTAL: %3.4fs\n", t_process);
+    printf("====> CLOUD PROCESS TIME: %3.4fs\n", t_process);
 }
 
 std::vector<std::unique_ptr<Hand>> CandidatesGenerator::generateGraspCandidates(

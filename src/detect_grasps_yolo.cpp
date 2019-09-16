@@ -1,6 +1,7 @@
 #include <string>
 
 #include <gpd/grasp_detector.h>
+#include <gpd/grasp_detector_pointnet.h>
 #include <gpd/detector/yolo_detector.h>
 
 #include <opencv2/opencv.hpp>
@@ -241,6 +242,8 @@ namespace gpd {
             }
 
             int TestYoloDetector(int argc, char *argv[]) {
+                printf("[INFO] detect grasps use lenet...\n");
+
                 // Read arguments from command line.
                 if (argc < 2) {
                     std::cout << "Error: Not enough input arguments!\n\n";
@@ -320,6 +323,96 @@ namespace gpd {
                     printf("Don't have aim objects in the input file.\n");
                 }
 
+                printf("[INFO] detect grasps use lenet done.\n");
+
+                return 0;
+            }
+
+            int TestYoloDetectorPointnet(int argc, char *argv[]) {
+                printf("[INFO] detect grasps use pointnet...\n");
+
+                // Read arguments from command line.
+                if (argc < 2) {
+                    std::cout << "Error: Not enough input arguments!\n\n";
+                    std::cout << "Usage: detect_grasps CONFIG_FILE\n\n";
+                    std::cout << "Detect grasp poses for a point cloud, PCD_FILE (*.pcd), "
+                                 "using parameters from CONFIG_FILE (*.cfg).\n\n";
+                    return (-1);
+                }
+
+                std::string config_filename = argv[1];
+                if (!checkFileExists(config_filename)) {
+                    printf("Error: config file not found!\n");
+                    return (-1);
+                }
+
+                // Read parameters from configuration file.
+                util::ConfigFile config_file(config_filename);
+                config_file.ExtractKeys();
+
+                // Set the camera position. Assumes a single camera view.
+                std::vector<double> camera_position =
+                        config_file.getValueOfKeyAsStdVectorDouble("camera_position",
+                                                                   "0.0 0.0 0.0");
+                Eigen::Matrix3Xd view_points(3, 1);
+                view_points << camera_position[0], camera_position[1], camera_position[2];
+
+                // Read yolo config and weights file path.
+                std::string yolo_config_filename =
+                        config_file.getValueOfKeyAsString("yolo_config_filename", "");
+                std::string yolo_weights_filename =
+                        config_file.getValueOfKeyAsString("yolo_weights_filename", "");
+
+                // Read the rgb image file path.
+                std::string rgb_image_filename =
+                        config_file.getValueOfKeyAsString("rgb_image_filename", "");
+
+                // Read the pcd file path.
+                std::string pcd_filename =
+                        config_file.getValueOfKeyAsString("pcd_filename", "");
+
+                if (!checkFileExists(rgb_image_filename)) {
+                    return (-1);
+                }
+
+                if (!checkFileExists(pcd_filename)) {
+                    return (-1);
+                }
+
+                // Load point cloud from file.
+                util::Cloud cloud(pcd_filename, view_points);
+                if (cloud.getCloudOriginal()->size() == 0) {
+                    std::cout << "Error: Input point cloud is empty or does not exist!\n";
+                    return (-1);
+                }
+
+                // 读取图像
+                cv::Mat image;
+                image = cv::imread(rgb_image_filename);
+
+                std::vector<cv::Rect> obj_boxes;
+                detector::YoloDetector yoloDetector(yolo_config_filename, yolo_weights_filename);
+                obj_boxes = yoloDetector.getObjRect(image);
+
+                cv::imshow("image", image);
+                cv::waitKey(0);
+
+                GraspDetectorPointNet detector(config_filename);
+                if (obj_boxes.size() > 0) {
+                    for (size_t i = 0; i < obj_boxes.size(); i++) {
+
+                        // Prepare the point cloud.
+                        detector.preprocessPointCloud(cloud, obj_boxes[i]);
+
+                        // Detect grasp poses.
+                        detector.detectGrasps(cloud);
+                    }
+                } else {
+                    printf("Don't have aim objects in the input file.\n");
+                }
+
+                printf("[INFO] detect grasps use lenet done.\n");
+
                 return 0;
             }
 
@@ -329,5 +422,11 @@ namespace gpd {
 
 int main(int argc, char *argv[]) {
 //    return gpd::apps::detect_grasps::DoMain(argc, argv);
-    return gpd::apps::detect_grasps::TestYoloDetector(argc, argv);
+    cout << argv[2] << endl;
+    if (std::string(argv[2]) == "lenet") {
+        return gpd::apps::detect_grasps::TestYoloDetector(argc, argv);
+    }
+    else if (std::string(argv[2]) == "pointnet") {
+        return gpd::apps::detect_grasps::TestYoloDetectorPointnet(argc, argv);
+    }
 }

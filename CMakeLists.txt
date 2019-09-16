@@ -304,6 +304,7 @@ target_link_libraries(${PROJECT_NAME}_detect_grasps
 
 target_link_libraries(${PROJECT_NAME}_detect_grasps_yolo
         ${PROJECT_NAME}_grasp_detector
+        ${PROJECT_NAME}_grasp_detector_pointnet
         ${PROJECT_NAME}_config_file
         ${PROJECT_NAME}_yolo_detector
         ${PCL_LIBRARIES})

@@ -48,10 +48,16 @@
   ./detect_grasps ../cfg/eigen_params.cfg /home/sdhm/图片/kinect2点云样本/0004_cloud.pcd
   ```
 
-- 测试在目标区域中采样（yolo）
+- 测试在目标区域中采样（yolo+lenet）
 
   ```bash
-  ./detect_grasps_yolo ../cfg/yolo_params.cfg
+  ./detect_grasps_yolo ../cfg/yolo_params_lenet.cfg lenet
+  ```
+
+- 测试在目标区域中采样（yolo+pointnet）
+
+  ```bash
+  ./detect_grasps_yolo ../cfg/yolo_params_pointnet.cfg pointnet
   ```
 
 - 使用pointnet分类

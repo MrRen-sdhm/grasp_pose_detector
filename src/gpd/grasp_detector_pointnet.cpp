@@ -260,7 +260,7 @@ namespace gpd {
         point_generator_->createPointGroups(cloud, hand_set_list_filtered, point_groups, hands);
         double t_points = omp_get_wtime() - t0_points;
 
-        printf("[INFO] Create points in the hand closing area done.\n");
+//        printf("[INFO] Create points in the hand closing area done.\n");
 
         // 4. Classify the grasp candidates by pointnet.
         double t0_classify = omp_get_wtime();
@@ -302,14 +302,14 @@ namespace gpd {
 
         // 7. Sort grasps by their score.
         std::sort(clusters.begin(), clusters.end(), isScoreGreater);
-        printf("======== Selected grasps ========\n");
+        printf("\033[0;36m%s\033[0m\n", "======== SELECTED GRASPS ========");
         for (int i = 0; i < clusters.size(); i++) {
             std::cout << "Grasp " << i << ": " << clusters[i]->getScore() << "\n";
         }
         printf("Selected the %d best grasps.\n", (int)clusters.size());
         double t_total = omp_get_wtime() - t0_total;
 
-        printf("======== RUNTIMES ========\n");
+        printf("\033[0;32m%s\033[0m\n", "========    RUNTIMES     ========");
         printf(" 1. Candidate generation: %3.4fs\n", t_candidates);
         printf(" 2. Descriptor extraction: %3.4fs\n", t_points);
         printf(" 3. Classification: %3.4fs\n", t_classify);

@@ -694,12 +694,15 @@ namespace util {
         estimator.setRadiusSearch(0.03);
         pcl::IndicesPtr indices_ptr(new std::vector<int>);
 
+        cout << "setViewPoint:" << view_points_  << " \nview_points_.cols():" << view_points_.cols() << endl;
+
         for (int i = 0; i < view_points_.cols(); i++) {
             PointCloudNormal::Ptr normals_cloud(new PointCloudNormal);
             indices_ptr->assign(indices[i].begin(), indices[i].end());
             estimator.setIndices(indices_ptr);
             estimator.setViewPoint(view_points_(0, i), view_points_(1, i),
                                    view_points_(2, i));
+            printf("[DEBUG] %f, %f, %f\n", view_points_(0, i), view_points_(1, i), view_points_(2, i));
             double t0 = omp_get_wtime();
             estimator.compute(*normals_cloud);
             printf(" runtime(computeNormals): %3.4f\n", omp_get_wtime() - t0);

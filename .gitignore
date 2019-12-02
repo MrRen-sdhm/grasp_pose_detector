@@ -15,6 +15,7 @@ models/gpd_dataset/
 .vscode/
 .idea/
 
+*.pyc
 *.pwf
 *.git
 *.pt

@@ -23,10 +23,10 @@ set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -std=c++1
 include_directories(include ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 
 # Classifier depends on what libraries are installed.
+option(USE_EIGEN "use classifier based on Eigen framework" OFF)
 option(USE_OPENVINO "use classifier based on OpenVINO toolkit" OFF)
-option(USE_CAFFE "use classifier based on Caffe framework" OFF)
-option(USE_OPENCV "use classifier based on OpenCV framework" OFF)
 option(USE_LIBTORCH "use classifier based on Libtorch framework" OFF)
+option(USE_PYTHON "use classifier based on Python framework" ON)
 if(USE_OPENVINO STREQUAL "ON")
   find_package(InferenceEngine 1.0)
   if (NOT InferenceEngine_FOUND)
@@ -41,39 +41,7 @@ if(USE_OPENVINO STREQUAL "ON")
   set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/openvino_classifier.cpp)
   set(classifier_dep ${InferenceEngine_LIBRARIES})
   message("Using OpenVINO")
-elseif(USE_CAFFE STREQUAL "ON")
-  find_package(Caffe)
-  if (NOT Caffe_FOUND)
-    message(FATAL_ERROR "Please install Caffe https://caffe.berkeleyvision.org/installation.html")
-  endif()
-  include_directories(${Caffe_INCLUDE_DIRS})
-  add_definitions(${Caffe_DEFINITIONS})
-  add_definitions(-DUSE_CAFFE)
-  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/caffe_classifier.cpp)
-  set(classifier_dep ${Caffe_LIBRARIES} ${OpenCV_LIBRARIES})
 elseif(USE_LIBTORCH STREQUAL "ON")
-  # Torch
-  set(CMAKE_PREFIX_PATH "/home/sdhm/libtorch/share/cmake")
-  find_package(Torch)
-  message(STATUS "Pytorch status:")
-  message(STATUS "    libraries: ${TORCH_LIBRARIES}")
-  if (NOT Torch_FOUND)
-    message(FATAL_ERROR "Please install Libtorch.")
-  endif()
-  include_directories(${TORCH_INCLUDE_DIRS})
-  add_definitions(${TORCH_DEFINITIONS})
-  add_definitions(-DUSE_TORCH)
-  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/libtorch_classifier.cpp)
-  set(classifier_dep ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
-elseif(USE_OPENCV STREQUAL "ON")
-  message(FATAL_ERROR "Not supported yet")
-else()
-  # eigen
-#  add_library(${PROJECT_NAME}_conv_layer src/${PROJECT_NAME}/net/conv_layer.cpp)
-#  add_library(${PROJECT_NAME}_dense_layer src/${PROJECT_NAME}/net/dense_layer.cpp)
-#  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/eigen_classifier.cpp)
-#  set(classifier_dep ${PROJECT_NAME}_conv_layer ${PROJECT_NAME}_dense_layer ${OpenCV_LIBRARIES})
-
   # libtorch
   set(CMAKE_PREFIX_PATH "/home/sdhm/libtorch/share/cmake")
   find_package(Torch)
@@ -81,6 +49,35 @@ else()
   message(STATUS "    libraries: ${TORCH_LIBRARIES}")
   set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/libtorch_classifier.cpp)
   set(classifier_dep ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
+  add_definitions(-DUSE_LIBTORCH)
+  message("Using Libtorch")
+elseif(USE_PYTHON STREQUAL "ON")
+  # python
+  #----------------------------CMAKE & GLOBAL PROPERTIES-------------------------#
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/python")
+  #=============== Find Packages ==================================
+  include("DetectPython")
+  find_package(Boost COMPONENTS REQUIRED python)
+  #==============pick python stuff=================================
+  SET(PYTHON_INCLUDE_DIRS /usr/include/python2.7)
+  SET(PYTHON_LIBRARIES ${PYTHON2_LIBRARY})
+  SET(PYTHON_EXECUTABLE ${PYTHON2_EXECUTABLE})
+  SET(PYTHON_PACKAGES_PATH ${PYTHON2_PACKAGES_PATH})
+  #  SET(ARCHIVE_OUTPUT_NAME pbcvt_py2)
+
+  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/python_classifier.cpp)
+  set(classifier_dep ${OpenCV_LIBRARIES} ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+
+  add_definitions(-DUSE_PYTHON)
+  message("Using Python")
+elseif(USE_EIGEN STREQUAL "ON") # default
+  # eigen
+  add_library(${PROJECT_NAME}_conv_layer src/${PROJECT_NAME}/net/conv_layer.cpp)
+  add_library(${PROJECT_NAME}_dense_layer src/${PROJECT_NAME}/net/dense_layer.cpp)
+  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/eigen_classifier.cpp)
+  set(classifier_dep ${PROJECT_NAME}_conv_layer ${PROJECT_NAME}_dense_layer ${OpenCV_LIBRARIES})
+  add_definitions(-DUSE_EIGEN)
+  message("Using Eigen")
 endif()
 
 # Optional PCL GPU operations
@@ -120,6 +117,12 @@ add_library(${PROJECT_NAME}_grasp_detector_pointnet SHARED src/${PROJECT_NAME}/g
 add_library(${PROJECT_NAME}_classifier ${classifier_src})
 target_link_libraries(${PROJECT_NAME}_classifier
         ${classifier_dep})
+if(USE_PYTHON STREQUAL "ON")
+target_include_directories(${PROJECT_NAME}_classifier PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${Boost_INCLUDE_DIRS}
+        ${PYTHON_INCLUDE_DIRS})
+endif()
 
 add_library(${PROJECT_NAME}_clustering src/${PROJECT_NAME}/clustering.cpp)
 add_library(${PROJECT_NAME}_sequential_importance_sampling src/${PROJECT_NAME}/sequential_importance_sampling.cpp)

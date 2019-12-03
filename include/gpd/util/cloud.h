@@ -33,6 +33,7 @@
 #define CLOUD_H_
 
 #include <math.h>
+#include <time.h>
 #include <algorithm>
 #include <fstream>
 #include <iostream>

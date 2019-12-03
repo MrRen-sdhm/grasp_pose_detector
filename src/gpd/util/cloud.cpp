@@ -526,10 +526,13 @@ namespace util {
 
         if (samples_.cols() > 0) {
             subsampleSamples(num_samples);
+            printf("[INFO] subsample Samples.\n");
         } else if (sample_indices_.size() > 0) {
             subsampleSampleIndices(num_samples);
+            printf("[INFO] subsample SampleIndices.\n");
         } else {
             subsampleUniformly(num_samples);
+            printf("[INFO] subsample Uniformly.\n");
         }
     }
 
@@ -565,13 +568,16 @@ namespace util {
     }
 
     void Cloud::subsampleSampleIndices(int num_samples) {
+//        printf("[DEBUG] num_samples:%d sample_indices size:%zu\n", num_samples, sample_indices_.size());
         if (sample_indices_.size() == 0 || num_samples >= sample_indices_.size()) {
             return;
         }
 
+        srand((unsigned)time(NULL)); //avoid to generate pseudo random number
         std::vector<int> indices(num_samples);
         for (int i = 0; i < num_samples; i++) {
             indices[i] = sample_indices_[rand() % sample_indices_.size()];
+//            cout << "rand:" << rand() << endl;
         }
         sample_indices_ = indices;
     }

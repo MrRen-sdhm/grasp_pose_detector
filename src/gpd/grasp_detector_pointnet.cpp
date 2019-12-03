@@ -109,12 +109,9 @@ namespace gpd {
         printf("==============================================\n");
 
         // Read classification parameters and create classifier.
-        std::string weights_file;
         std::string model_file = config_file.getValueOfKeyAsString("model_file", "");
+        std::string weights_file = config_file.getValueOfKeyAsString("weights_file", "");
         int device = config_file.getValueOfKey<int>("device", 0);
-        if (device == 0) weights_file = config_file.getValueOfKeyAsString("weights_file_cpu", "");
-        else if (device == 1) weights_file = config_file.getValueOfKeyAsString("weights_file_gpu", "");
-        else weights_file = "";
 
         if (!model_file.empty() || !weights_file.empty()) {
             int batch_size = config_file.getValueOfKey<int>("batch_size", 256);

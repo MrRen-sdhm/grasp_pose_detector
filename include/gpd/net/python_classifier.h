@@ -3,6 +3,7 @@
 
 // System
 #include <string>
+#include <string.h>
 #include <vector>
 #include <exception>
 
@@ -95,7 +96,6 @@ namespace net {
         int batch_size_;
 
     };
-
 }  // namespace net
 }  // namespace gpd
 

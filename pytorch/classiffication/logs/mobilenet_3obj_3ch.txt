@@ -1,0 +1,9 @@
+========================== Time: 2019-06-30 16:10:41  ==========================
+Parameters: batch size-128 epochs-30 learning rate-0.001000 weight_decay-0.000500
+
+========================== Time: 2019-06-30 16:11:27  ==========================
+Parameters: batch size-128 epochs-30 learning rate-0.001000 weight_decay-0.000500
+
+========================== Time: 2019-06-30 16:12:10  ==========================
+Parameters: batch size-128 epochs-30 learning rate-0.001000 weight_decay-0.000500
+

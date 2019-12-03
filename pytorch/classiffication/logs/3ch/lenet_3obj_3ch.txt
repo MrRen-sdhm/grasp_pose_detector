@@ -1,0 +1,75 @@
+========================== Time: 2019-06-30 15:45:25  ==========================
+Parameters: batch size-128 epochs-30 learning rate-0.001000 weight_decay-0.000500
+
+Train Epoch: 1/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.601302 Top1:65.2134] 78/78 [100%]
+Val   Epoch: 1/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.548193 Top1:72.5975] 17/17 [100%]
+Get better val top1[72.60], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_72.60.pt
+Train Epoch: 2/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.547021 Top1:70.6757] 78/78 [100%]
+Val   Epoch: 2/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.532884 Top1:72.7402] 17/17 [100%]
+Get better val top1[72.74], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_72.74.pt
+Train Epoch: 3/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.506363 Top1:73.9598] 78/78 [100%]
+Val   Epoch: 3/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.503198 Top1:77.0457] 17/17 [100%]
+Get better val top1[77.05], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_77.05.pt
+Train Epoch: 4/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.474453 Top1:76.2922] 78/78 [100%]
+Val   Epoch: 4/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.480839 Top1:78.1399] 17/17 [100%]
+Get better val top1[78.14], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_78.14.pt
+Train Epoch: 5/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.450133 Top1:77.9729] 78/78 [100%]
+Val   Epoch: 5/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.468149 Top1:78.6870] 17/17 [100%]
+Get better val top1[78.69], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_78.69.pt
+Train Epoch: 6/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.429587 Top1:79.3226] 78/78 [100%]
+Val   Epoch: 6/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.483820 Top1:77.9734] 17/17 [100%]
+Train Epoch: 7/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.410677 Top1:80.4485] 78/78 [100%]
+Val   Epoch: 7/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.455129 Top1:79.1389] 17/17 [100%]
+Get better val top1[79.14], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_79.14.pt
+Train Epoch: 8/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.394252 Top1:81.4258] 78/78 [100%]
+Val   Epoch: 8/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.495156 Top1:79.9239] 17/17 [100%]
+Get better val top1[79.92], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_79.92.pt
+Train Epoch: 9/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.379025 Top1:82.2881] 78/78 [100%]
+Val   Epoch: 9/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.465651 Top1:80.1142] 17/17 [100%]
+Get better val top1[80.11], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_80.11.pt
+Train Epoch: 10/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.365037 Top1:83.0943] 78/78 [100%]
+Val   Epoch: 10/30 [>>>>>>>>>>>>] [Lr:1e-03 Loss:0.438553 Top1:81.3035] 17/17 [100%]
+Get better val top1[81.30], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_81.30.pt
+Train Epoch: 11/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.349996 Top1:83.9240] 78/78 [100%]
+Val   Epoch: 11/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.451815 Top1:81.6603] 17/17 [100%]
+Get better val top1[81.66], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_81.66.pt
+Train Epoch: 12/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.336375 Top1:84.6492] 78/78 [100%]
+Val   Epoch: 12/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.470385 Top1:81.3987] 17/17 [100%]
+Train Epoch: 13/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.324483 Top1:85.2768] 78/78 [100%]
+Val   Epoch: 13/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.474405 Top1:81.3273] 17/17 [100%]
+Train Epoch: 14/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.314045 Top1:85.8277] 78/78 [100%]
+Val   Epoch: 14/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.469085 Top1:81.2559] 17/17 [100%]
+Train Epoch: 15/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.304792 Top1:86.3099] 78/78 [100%]
+Val   Epoch: 15/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.471246 Top1:81.9696] 17/17 [100%]
+Get better val top1[81.97], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_81.97.pt
+Train Epoch: 16/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.296469 Top1:86.7470] 78/78 [100%]
+Val   Epoch: 16/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.472345 Top1:81.8744] 17/17 [100%]
+Train Epoch: 17/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.288985 Top1:87.1422] 78/78 [100%]
+Val   Epoch: 17/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.475924 Top1:81.3749] 17/17 [100%]
+Train Epoch: 18/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.282221 Top1:87.4975] 78/78 [100%]
+Val   Epoch: 18/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.477829 Top1:82.1361] 17/17 [100%]
+Get better val top1[82.14], save to:./checkpoints/best_model/lenet/3obj_3ch/model_best_82.14.pt
+Train Epoch: 19/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.275978 Top1:87.8339] 78/78 [100%]
+Val   Epoch: 19/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.491684 Top1:80.6851] 17/17 [100%]
+Train Epoch: 20/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.270306 Top1:88.1312] 78/78 [100%]
+Val   Epoch: 20/30 [>>>>>>>>>>>>] [Lr:1e-04 Loss:0.487265 Top1:81.2797] 17/17 [100%]
+Train Epoch: 21/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.264838 Top1:88.4237] 78/78 [100%]
+Val   Epoch: 21/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.483814 Top1:81.8744] 17/17 [100%]
+Train Epoch: 22/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.259832 Top1:88.6897] 78/78 [100%]
+Val   Epoch: 22/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.485357 Top1:81.8268] 17/17 [100%]
+Train Epoch: 23/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.255243 Top1:88.9365] 78/78 [100%]
+Val   Epoch: 23/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.486225 Top1:81.5414] 17/17 [100%]
+Train Epoch: 24/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.251024 Top1:89.1640] 78/78 [100%]
+Val   Epoch: 24/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.485704 Top1:81.7317] 17/17 [100%]
+Train Epoch: 25/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.247122 Top1:89.3749] 78/78 [100%]
+Val   Epoch: 25/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.485976 Top1:81.7555] 17/17 [100%]
+Train Epoch: 26/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.243512 Top1:89.5699] 78/78 [100%]
+Val   Epoch: 26/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.487203 Top1:81.6365] 17/17 [100%]
+Train Epoch: 27/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.240157 Top1:89.7498] 78/78 [100%]
+Val   Epoch: 27/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.487822 Top1:81.6127] 17/17 [100%]
+Train Epoch: 28/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.237028 Top1:89.9176] 78/78 [100%]
+Val   Epoch: 28/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.487410 Top1:81.7793] 17/17 [100%]
+Train Epoch: 29/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.234108 Top1:90.0741] 78/78 [100%]
+Val   Epoch: 29/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.489651 Top1:81.4938] 17/17 [100%]
+Train Epoch: 30/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.231373 Top1:90.2195] 78/78 [100%]
+Val   Epoch: 30/30 [>>>>>>>>>>>>] [Lr:1e-05 Loss:0.489105 Top1:81.6841] 17/17 [100%]

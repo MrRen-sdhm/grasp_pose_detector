@@ -19,10 +19,13 @@ models/gpd_dataset/
 *.pwf
 *.git
 *.pt
+*.model
 *.pb
 *.h5
 *.zip
 *.tar
+*.7z
+*.onnx
 *.weights
 
 # Executables

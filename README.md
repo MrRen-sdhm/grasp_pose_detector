@@ -136,6 +136,14 @@ set(classifier_dep ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
 
 
 
-## 模型训练
+## 项目中遇到的工程问题
 
-- 
+- C++环境中调用神经网络模型
+
+  1、使用Libtorch
+
+  2、C++调用Python
+
+  ​	将数组或图片转换为ndarray
+
+  ​	首先读取模型，后续仅使用模型

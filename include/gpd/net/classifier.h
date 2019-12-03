@@ -75,7 +75,7 @@ public:
      * \param image_list the list of grasp images
      * \return the classified grasp candidates
      */
-    virtual std::vector<float> classifyImages(
+    virtual std::vector<double> classifyImages(
             const std::vector<std::unique_ptr<cv::Mat>> &image_list) = 0;
 
     /**
@@ -83,7 +83,7 @@ public:
    * \param point_list the points in the hand closed area.
    * \return the classified grasp candidates
    */
-    virtual std::vector<float> classifyPoints(
+    virtual std::vector<double> classifyPoints(
             const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) = 0;
 
     /**
@@ -91,7 +91,7 @@ public:
    * \param point_list the points in the hand closed area.
    * \return the classified grasp candidates
    */
-    virtual std::vector<float> classifyPointsBatch(
+    virtual std::vector<double> classifyPointsBatch(
             const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) = 0;
 
     /**

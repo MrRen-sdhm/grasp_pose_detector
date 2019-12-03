@@ -264,7 +264,7 @@ namespace gpd {
 
         // 4. Classify the grasp candidates by pointnet.
         double t0_classify = omp_get_wtime();
-        std::vector<float> scores = classifier_->classifyPointsBatch(point_groups);
+        std::vector<double> scores = classifier_->classifyPointsBatch(point_groups);
 
 
         for (int i = 0; i < hands.size(); i++) {

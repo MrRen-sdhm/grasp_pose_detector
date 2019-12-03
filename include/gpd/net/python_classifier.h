@@ -66,7 +66,7 @@ namespace net {
          * \param image_list the list of grasp images
          * \return the classified grasp candidates
          */
-        std::vector<float> classifyImages(
+        std::vector<double> classifyImages(
                 const std::vector<std::unique_ptr<cv::Mat>> &image_list);
 
         /**
@@ -74,7 +74,7 @@ namespace net {
          * \param point_list the points in the hand closed area.
          * \return the classified grasp candidates
          */
-        std::vector<float> classifyPoints(
+        std::vector<double> classifyPoints(
                 const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups);
 
         /**
@@ -82,7 +82,7 @@ namespace net {
          * \param point_list the points in the hand closed area.
          * \return the classified grasp candidates
          */
-        std::vector<float> classifyPointsBatch(
+        std::vector<double> classifyPointsBatch(
                 const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups);
 
         int getBatchSize() const { return batch_size_; }
@@ -90,6 +90,8 @@ namespace net {
     private:
         PyObject *pModule;
         PyObject *pDict;
+        string module_name_; // python script name
+        string func_name_; // function name
         int batch_size_;
 
     };

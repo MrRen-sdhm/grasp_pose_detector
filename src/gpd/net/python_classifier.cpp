@@ -7,7 +7,7 @@ PythonClassifier::PythonClassifier(const std::string &model_file,
                                  const std::string &weights_file,
                                  Classifier::Device device, int batch_size) : batch_size_(batch_size) {
 
-    // Load pretrained network.
+    // Init python
     init_ar();
     char str[] = "Python";
     Py_SetProgramName(str);
@@ -16,23 +16,30 @@ PythonClassifier::PythonClassifier(const std::string &model_file,
 
     PyRun_SimpleString("import sys");
     PyRun_SimpleString("sys.path.append('../python')");
+    PyRun_SimpleString("sys.path.append('../python/pointnet')");
+
+//    module_name_ = "ndarray_module";
+//    func_name_ = "PassArrayFromCToPython";
+    module_name_ = "pointnet_cls";
+    func_name_ = "classify_pcs";
 
     /* import */
-    pModule = PyImport_ImportModule("ndarray_module");
+    pModule = PyImport_ImportModule("pointnet_cls");
     if (pModule == NULL) {
-        cout<<"ERROR importing module"<<endl;
+        cout << "[Python] ERROR importing module" << endl;
     }
 
     pDict = PyModule_GetDict(pModule);
 }
 
-std::vector<float> PythonClassifier::classifyImages(
+std::vector<double> PythonClassifier::classifyImages(
         const std::vector<std::unique_ptr<cv::Mat>> &image_list) {
 }
 
-std::vector<float> PythonClassifier::classifyPoints(
+std::vector<double> PythonClassifier::classifyPoints(
         const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) {
-    std::vector<float> predictions;
+    std::vector<double> predictions;
+
     const int points_num = point_groups[0]->cols(); // 点数
     printf("[DEBUG] points num:%d", points_num);
 
@@ -44,7 +51,7 @@ std::vector<float> PythonClassifier::classifyPoints(
     PyObject *ArgArray = PyTuple_New(1); //同样定义大小与Python函数参数个数一致的PyTuple对象
     PyTuple_SetItem(ArgArray, 0, PyArray);
 
-    PyObject *pFunc = PyDict_GetItemString(pDict, "PassArrayFromCToPython");
+    PyObject *pFunc = PyDict_GetItemString(pDict, func_name_.c_str());
     PyObject_CallObject(pFunc, ArgArray);//调用函数，传入Numpy Array 对象
 
 //    for(int i = 0; i < pred_2.size(0); i++) {
@@ -55,9 +62,10 @@ std::vector<float> PythonClassifier::classifyPoints(
     return predictions;
 }
 
-std::vector<float> PythonClassifier::classifyPointsBatch(
+std::vector<double> PythonClassifier::classifyPointsBatch(
         const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) {
-    std::vector<float> predictions;
+    std::vector<double> predictions;
+
     const int groups_num = point_groups.size(); // 点云数
     const int points_num = point_groups[0]->cols(); // 各点云点数
     printf("[DEBUG] points num:%d\n", points_num);
@@ -81,15 +89,35 @@ std::vector<float> PythonClassifier::classifyPointsBatch(
     printf("[Python] Inputs generate runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_start);
 
     double omp_timer_predict = omp_get_wtime();
-    PyObject *pFunc = PyDict_GetItemString(pDict, "PassArrayFromCToPython");
-    PyObject_CallObject(pFunc, ArgArray);//调用函数，传入Numpy Array 对象
+    PyObject *pFunc = PyDict_GetItemString(pDict, func_name_.c_str());
+    PyObject *FuncBack = PyObject_CallObject(pFunc, ArgArray); //调用函数，传入Numpy Array 对象
+
 
     printf("[Python] Predict runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_predict);
 
-//    for(int i = 0; i < pred_2.size(0); i++) {
-//        predictions.push_back(pred_2[i][0].item<float>());
-//        if (DEGUBLIBTORCH) printf("%.2f\n", pred_2[i][0].item<float>());
-//    }
+    // 获取返回值
+    if (PyList_Check(FuncBack)) { //检查是否为List对象
+
+        int SizeOfList = PyList_Size(FuncBack);//List对象的大小，这里SizeOfList = 3
+        cout << "Size of return List:" << SizeOfList <<endl;
+        for (int i = 0; i < SizeOfList; i++) {
+            PyObject *ListItem = PyList_GetItem(FuncBack, i); //获取List对象中的每一个元素
+            const double value = PyFloat_AsDouble(ListItem);
+            predictions.push_back(value);
+            cout << value << " "; //输出元素
+            Py_DECREF(ListItem); //释放空间
+        }
+        cout << endl;
+
+    } else {
+        cout << "[Python] Function return is not a List" << endl;
+    }
+
+    Py_DECREF(PyArray);
+    Py_DECREF(ArgArray);
+//    Py_DECREF(pFunc);
+//    Py_DECREF(FuncBack);
+
     printf("[Python] Total runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_start);
     return predictions;
 }

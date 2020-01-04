@@ -96,10 +96,10 @@ endif()
 option(BUILD_DATA_GENERATION "build data generation (requires OpenCV Contrib for HDF5)" OFF)
 if(BUILD_DATA_GENERATION STREQUAL "ON")
   add_library(${PROJECT_NAME}_data_generator src/${PROJECT_NAME}/data_generator.cpp)
-  target_link_libraries(${PROJECT_NAME}_data_generator
-          ${PROJECT_NAME}_grasp_detector
-          ${PCL_LIBRARIES}
-          ${OpenCV_LIBS})
+#  target_link_libraries(${PROJECT_NAME}_data_generator
+#          ${PROJECT_NAME}_grasp_detector
+#          ${PCL_LIBRARIES}
+#          ${OpenCV_LIBS})
   add_executable(${PROJECT_NAME}_generate_data src/generate_data.cpp)
   target_link_libraries(${PROJECT_NAME}_generate_data
           ${PROJECT_NAME}_data_generator)
@@ -111,7 +111,7 @@ if(BUILD_DATA_GENERATION STREQUAL "ON")
 endif()
 
 # Generate the shared library from the sources
-add_library(${PROJECT_NAME}_grasp_detector SHARED src/${PROJECT_NAME}/grasp_detector.cpp)
+#add_library(${PROJECT_NAME}_grasp_detector SHARED src/${PROJECT_NAME}/grasp_detector.cpp)
 add_library(${PROJECT_NAME}_grasp_detector_pointnet SHARED src/${PROJECT_NAME}/grasp_detector_pointnet.cpp)
 
 add_library(${PROJECT_NAME}_classifier ${classifier_src})
@@ -146,12 +146,12 @@ add_library(${PROJECT_NAME}_plot src/${PROJECT_NAME}/util/plot.cpp)
 add_library(${PROJECT_NAME}_point_list src/${PROJECT_NAME}/util/point_list.cpp)
 
 # namespace descriptor
-add_library(${PROJECT_NAME}_image_strategy src/${PROJECT_NAME}/descriptor/image_strategy.cpp)
-add_library(${PROJECT_NAME}_image_1_channels_strategy src/${PROJECT_NAME}/descriptor/image_1_channels_strategy.cpp)
-add_library(${PROJECT_NAME}_image_3_channels_strategy src/${PROJECT_NAME}/descriptor/image_3_channels_strategy.cpp)
-add_library(${PROJECT_NAME}_image_12_channels_strategy src/${PROJECT_NAME}/descriptor/image_12_channels_strategy.cpp)
-add_library(${PROJECT_NAME}_image_15_channels_strategy src/${PROJECT_NAME}/descriptor/image_15_channels_strategy.cpp)
-add_library(${PROJECT_NAME}_image_geometry src/${PROJECT_NAME}/descriptor/image_geometry.cpp)
+#add_library(${PROJECT_NAME}_image_strategy src/${PROJECT_NAME}/descriptor/image_strategy.cpp)
+#add_library(${PROJECT_NAME}_image_1_channels_strategy src/${PROJECT_NAME}/descriptor/image_1_channels_strategy.cpp)
+#add_library(${PROJECT_NAME}_image_3_channels_strategy src/${PROJECT_NAME}/descriptor/image_3_channels_strategy.cpp)
+#add_library(${PROJECT_NAME}_image_12_channels_strategy src/${PROJECT_NAME}/descriptor/image_12_channels_strategy.cpp)
+#add_library(${PROJECT_NAME}_image_15_channels_strategy src/${PROJECT_NAME}/descriptor/image_15_channels_strategy.cpp)
+#add_library(${PROJECT_NAME}_image_geometry src/${PROJECT_NAME}/descriptor/image_geometry.cpp)
 
 # namespace detector
 add_library(${PROJECT_NAME}_yolo_detector src/${PROJECT_NAME}/detector/yolo_detector.cpp)
@@ -160,14 +160,15 @@ add_library(${PROJECT_NAME}_image_generator src/${PROJECT_NAME}/descriptor/image
 add_library(${PROJECT_NAME}_point_generator src/${PROJECT_NAME}/descriptor/point_generator.cpp)
 
 ## Declare C++ executables
-add_executable(${PROJECT_NAME}_cem_detect_grasps src/cem_detect_grasps.cpp)
-add_executable(${PROJECT_NAME}_detect_grasps src/detect_grasps.cpp)
+#add_executable(${PROJECT_NAME}_cem_detect_grasps src/cem_detect_grasps.cpp)
+#add_executable(${PROJECT_NAME}_detect_grasps src/detect_grasps.cpp)
 add_executable(${PROJECT_NAME}_detect_grasps_yolo src/detect_grasps_yolo.cpp)
 add_executable(${PROJECT_NAME}_detect_grasps_pointnet src/detect_grasps_pointnet.cpp)
 add_executable(${PROJECT_NAME}_generate_candidates src/generate_candidates.cpp)
-add_executable(${PROJECT_NAME}_label_grasps src/label_grasps.cpp)
-add_executable(${PROJECT_NAME}_test_torch src/tests/test_torch.cpp)
-add_executable(${PROJECT_NAME}_test_grasp_image src/tests/test_grasp_image.cpp)
+
+#add_executable(${PROJECT_NAME}_label_grasps src/label_grasps.cpp)
+#add_executable(${PROJECT_NAME}_test_torch src/tests/test_torch.cpp)
+#add_executable(${PROJECT_NAME}_test_grasp_image src/tests/test_grasp_image.cpp)
 # add_executable(${PROJECT_NAME}_test_conv_layer src/tests/test_conv_layer.cpp)
 # add_executable(${PROJECT_NAME}_test_hdf5 src/tests/test_hdf5.cpp)
 
@@ -176,15 +177,15 @@ add_executable(${PROJECT_NAME}_test_grasp_image src/tests/test_grasp_image.cpp)
 target_link_libraries(${PROJECT_NAME}_clustering
         ${PROJECT_NAME}_hand)
 
-target_link_libraries(${PROJECT_NAME}_grasp_detector
-        ${PROJECT_NAME}_clustering
-        ${PROJECT_NAME}_image_generator
-        ${PROJECT_NAME}_classifier
-        ${PROJECT_NAME}_candidates_generator
-        ${PROJECT_NAME}_hand_geometry
-        ${PROJECT_NAME}_hand_set
-        ${PROJECT_NAME}_config_file
-        ${PROJECT_NAME}_plot)
+#target_link_libraries(${PROJECT_NAME}_grasp_detector
+#        ${PROJECT_NAME}_clustering
+#        ${PROJECT_NAME}_image_generator
+#        ${PROJECT_NAME}_classifier
+#        ${PROJECT_NAME}_candidates_generator
+#        ${PROJECT_NAME}_hand_geometry
+#        ${PROJECT_NAME}_hand_set
+#        ${PROJECT_NAME}_config_file
+#        ${PROJECT_NAME}_plot)
 
 target_link_libraries(${PROJECT_NAME}_grasp_detector_pointnet
         ${PROJECT_NAME}_clustering
@@ -240,7 +241,7 @@ target_link_libraries(${PROJECT_NAME}_hand_search
 target_link_libraries(${PROJECT_NAME}_plot
         ${PROJECT_NAME}_cloud
         ${PROJECT_NAME}_hand_set
-        ${PROJECT_NAME}_image_geometry
+#        ${PROJECT_NAME}_image_geometry
         ${PROJECT_NAME}_local_frame)
 
 target_link_libraries(${PROJECT_NAME}_candidates_generator
@@ -251,32 +252,32 @@ target_link_libraries(${PROJECT_NAME}_candidates_generator
 target_link_libraries(${PROJECT_NAME}_point_list
         ${PROJECT_NAME}_eigen_utils)
 
-target_link_libraries(${PROJECT_NAME}_image_strategy
-        ${PROJECT_NAME}_image_geometry
-        ${PROJECT_NAME}_image_1_channels_strategy
-        ${PROJECT_NAME}_image_3_channels_strategy
-        ${PROJECT_NAME}_image_12_channels_strategy
-        ${PROJECT_NAME}_image_15_channels_strategy
-        ${PROJECT_NAME}_hand_set
-        ${OpenCV_LIBS})
+#target_link_libraries(${PROJECT_NAME}_image_strategy
+#        ${PROJECT_NAME}_image_geometry
+#        ${PROJECT_NAME}_image_1_channels_strategy
+#        ${PROJECT_NAME}_image_3_channels_strategy
+#        ${PROJECT_NAME}_image_12_channels_strategy
+#        ${PROJECT_NAME}_image_15_channels_strategy
+#        ${PROJECT_NAME}_hand_set
+#        ${OpenCV_LIBS})
 
 target_link_libraries(${PROJECT_NAME}_yolo_detector
         ${OpenCV_LIBS})
 
-target_link_libraries(${PROJECT_NAME}_image_1_channels_strategy
-        ${PROJECT_NAME}_image_strategy)
+#target_link_libraries(${PROJECT_NAME}_image_1_channels_strategy
+#        ${PROJECT_NAME}_image_strategy)
+#
+#target_link_libraries(${PROJECT_NAME}_image_3_channels_strategy
+#        ${PROJECT_NAME}_image_strategy)
+#
+#target_link_libraries(${PROJECT_NAME}_image_12_channels_strategy
+#        ${PROJECT_NAME}_image_strategy)
+#
+#target_link_libraries(${PROJECT_NAME}_image_15_channels_strategy
+#        ${PROJECT_NAME}_image_strategy)
 
-target_link_libraries(${PROJECT_NAME}_image_3_channels_strategy
-        ${PROJECT_NAME}_image_strategy)
-
-target_link_libraries(${PROJECT_NAME}_image_12_channels_strategy
-        ${PROJECT_NAME}_image_strategy)
-
-target_link_libraries(${PROJECT_NAME}_image_15_channels_strategy
-        ${PROJECT_NAME}_image_strategy)
-
-target_link_libraries(${PROJECT_NAME}_image_geometry
-        ${PROJECT_NAME}_config_file)
+#target_link_libraries(${PROJECT_NAME}_image_geometry
+#        ${PROJECT_NAME}_config_file)
 
 target_link_libraries(${PROJECT_NAME}_image_generator
         ${PROJECT_NAME}_image_strategy
@@ -290,23 +291,23 @@ target_link_libraries(${PROJECT_NAME}_point_generator
         ${PROJECT_NAME}_cloud
         ${PROJECT_NAME}_eigen_utils)
 
-target_link_libraries(${PROJECT_NAME}_sequential_importance_sampling
-        ${PROJECT_NAME}_grasp_detector)
+#target_link_libraries(${PROJECT_NAME}_sequential_importance_sampling
+#        ${PROJECT_NAME}_grasp_detector)
 
-target_link_libraries(${PROJECT_NAME}_test_grasp_image
-        ${PROJECT_NAME}_image_generator
-        ${PROJECT_NAME}_classifier
-        ${PROJECT_NAME}_plot
-        ${PROJECT_NAME}_candidates_generator
-        ${PCL_LIBRARIES})
+#target_link_libraries(${PROJECT_NAME}_test_grasp_image
+#        ${PROJECT_NAME}_image_generator
+#        ${PROJECT_NAME}_classifier
+#        ${PROJECT_NAME}_plot
+#        ${PROJECT_NAME}_candidates_generator
+#        ${PCL_LIBRARIES})
 
-target_link_libraries(${PROJECT_NAME}_detect_grasps
-        ${PROJECT_NAME}_grasp_detector
-        ${PROJECT_NAME}_config_file
-        ${PCL_LIBRARIES})
+#target_link_libraries(${PROJECT_NAME}_detect_grasps
+#        ${PROJECT_NAME}_grasp_detector
+#        ${PROJECT_NAME}_config_file
+#        ${PCL_LIBRARIES})
 
 target_link_libraries(${PROJECT_NAME}_detect_grasps_yolo
-        ${PROJECT_NAME}_grasp_detector
+#        ${PROJECT_NAME}_grasp_detector
         ${PROJECT_NAME}_grasp_detector_pointnet
         ${PROJECT_NAME}_config_file
         ${PROJECT_NAME}_yolo_detector
@@ -317,22 +318,22 @@ target_link_libraries(${PROJECT_NAME}_detect_grasps_pointnet
         ${PROJECT_NAME}_config_file
         ${PCL_LIBRARIES})
 
-target_link_libraries(${PROJECT_NAME}_label_grasps
-        ${PROJECT_NAME}_grasp_detector
-        ${PROJECT_NAME}_config_file
-        ${PCL_LIBRARIES})
+#target_link_libraries(${PROJECT_NAME}_label_grasps
+#        ${PROJECT_NAME}_grasp_detector
+#        ${PROJECT_NAME}_config_file
+#        ${PCL_LIBRARIES})
 
-target_link_libraries(${PROJECT_NAME}_test_torch
-        ${PROJECT_NAME}_grasp_detector
-        ${PROJECT_NAME}_config_file
-        ${PCL_LIBRARIES}
-        ${TORCH_LIBRARIES}
-        )
+#target_link_libraries(${PROJECT_NAME}_test_torch
+#        ${PROJECT_NAME}_grasp_detector
+#        ${PROJECT_NAME}_config_file
+#        ${PCL_LIBRARIES}
+#        ${TORCH_LIBRARIES}
+#        )
 
-target_link_libraries(${PROJECT_NAME}_cem_detect_grasps
-        ${PROJECT_NAME}_sequential_importance_sampling
-        ${PROJECT_NAME}_config_file
-        ${PCL_LIBRARIES})
+#target_link_libraries(${PROJECT_NAME}_cem_detect_grasps
+#        ${PROJECT_NAME}_sequential_importance_sampling
+#        ${PROJECT_NAME}_config_file
+#        ${PCL_LIBRARIES})
 
 target_link_libraries(${PROJECT_NAME}_image_generator
         ${PROJECT_NAME}_hand_set
@@ -342,14 +343,14 @@ target_link_libraries(${PROJECT_NAME}_point_generator
         ${PROJECT_NAME}_hand_set)
 
 # Rename targets to simplify their names.
-set_target_properties(${PROJECT_NAME}_test_grasp_image
-        PROPERTIES OUTPUT_NAME test_grasp_image PREFIX "")
+#set_target_properties(${PROJECT_NAME}_test_grasp_image
+#        PROPERTIES OUTPUT_NAME test_grasp_image PREFIX "")
 
-set_target_properties(${PROJECT_NAME}_cem_detect_grasps
-        PROPERTIES OUTPUT_NAME cem_detect_grasps PREFIX "")
+#set_target_properties(${PROJECT_NAME}_cem_detect_grasps
+#        PROPERTIES OUTPUT_NAME cem_detect_grasps PREFIX "")
 
-set_target_properties(${PROJECT_NAME}_detect_grasps
-        PROPERTIES OUTPUT_NAME detect_grasps PREFIX "")
+#set_target_properties(${PROJECT_NAME}_detect_grasps
+#        PROPERTIES OUTPUT_NAME detect_grasps PREFIX "")
 
 set_target_properties(${PROJECT_NAME}_detect_grasps_yolo
         PROPERTIES OUTPUT_NAME detect_grasps_yolo PREFIX "")
@@ -357,21 +358,21 @@ set_target_properties(${PROJECT_NAME}_detect_grasps_yolo
 set_target_properties(${PROJECT_NAME}_detect_grasps_pointnet
         PROPERTIES OUTPUT_NAME detect_grasps_pointnet PREFIX "")
 
-set_target_properties(${PROJECT_NAME}_label_grasps
-        PROPERTIES OUTPUT_NAME label_grasps PREFIX "")
+#set_target_properties(${PROJECT_NAME}_label_grasps
+#        PROPERTIES OUTPUT_NAME label_grasps PREFIX "")
 
-set_target_properties(${PROJECT_NAME}_test_torch
-        PROPERTIES OUTPUT_NAME test_torch PREFIX "")
+#set_target_properties(${PROJECT_NAME}_test_torch
+#        PROPERTIES OUTPUT_NAME test_torch PREFIX "")
 
-set_target_properties(${PROJECT_NAME}_grasp_detector
-        PROPERTIES OUTPUT_NAME gpd)
+#set_target_properties(${PROJECT_NAME}_grasp_detector
+#        PROPERTIES OUTPUT_NAME gpd)
 
 set_target_properties(${PROJECT_NAME}_grasp_detector_pointnet
         PROPERTIES OUTPUT_NAME gpd_pointnet)
 
 
 # Set the location for library installation
-install(TARGETS ${PROJECT_NAME}_grasp_detector DESTINATION lib)
+#install(TARGETS ${PROJECT_NAME}_grasp_detector DESTINATION lib)
 install(TARGETS ${PROJECT_NAME}_grasp_detector_pointnet DESTINATION lib)
 
 install(DIRECTORY include/gpd DESTINATION include)

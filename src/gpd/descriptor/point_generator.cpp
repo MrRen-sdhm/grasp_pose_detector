@@ -9,13 +9,9 @@ namespace gpd {
                 : hand_geometry_(hand_geometry),
                   num_threads_(num_threads),
                   num_orientations_(num_orientations),
+                  grasp_points_num_(grasp_points_num),
+                  min_point_limit_(min_point_limit),
                   remove_plane_(remove_plane) {
-
-            if (grasp_points_num > 100) grasp_points_num_ = grasp_points_num;
-            else grasp_points_num_ = 750;
-
-            if (min_point_limit > 10) min_point_limit_ = min_point_limit;
-            else grasp_points_num_ = 50;
         }
 
         void PointGenerator::createPointGroups(
@@ -34,9 +30,9 @@ namespace gpd {
                                        cloud_cam.getViewPoints());
 
             // Segment the support/table plane to speed up shadow computation.
-            if (remove_plane_) {
-                removePlane(cloud_cam, point_list);
-            }
+//            if (remove_plane_) {
+//                removePlane(cloud_cam, point_list);
+//            }
 
             // Prepare kd-tree for neighborhood searches in the point cloud.
             pcl::KdTreeFLANN<pcl::PointXYZRGBA> kdtree;
@@ -81,6 +77,9 @@ namespace gpd {
                 std::vector<std::unique_ptr<candidate::Hand>> &hands_out) const {
             double t0_images = omp_get_wtime();
 
+            std::vector<std::unique_ptr<Eigen::Matrix3Xd>> point_groups_out_tmp;
+            std::vector<std::unique_ptr<candidate::Hand>> hands_out_tmp;
+
             int m = hand_set_list[0]->getHands().size();
             int n = hand_set_list.size() * m;
             std::vector<std::vector<std::unique_ptr<Eigen::Matrix3Xd>>> point_groups_list(n);
@@ -97,9 +96,27 @@ namespace gpd {
             for (int i = 0; i < hand_set_list.size(); i++) {
                 for (int j = 0; j < hand_set_list[i]->getHands().size(); j++) {
                     if (hand_set_list[i]->getIsValid()(j)) {
-                        point_groups_out.push_back(std::move(point_groups_list[i][j]));
-                        hands_out.push_back(std::move(hand_set_list[i]->getHands()[j]));
+                        point_groups_out_tmp.push_back(std::move(point_groups_list[i][j]));
+                        hands_out_tmp.push_back(std::move(hand_set_list[i]->getHands()[j]));
                     }
+                }
+            }
+
+            // min point num filter
+            for (int i = 0; i < point_groups_out_tmp.size(); i++) {
+                if (point_groups_out_tmp[i]->cols() >= min_point_limit_) {
+                    if (DEBUG) printf("[DEBUG points num satisfied]\n");
+                    if (DEBUG) cout << point_groups_out_tmp[i]->cols() << endl;
+
+                    hands_out.push_back(std::move(hands_out_tmp[i]));
+
+                    // random sample
+                    Eigen::Matrix3Xd points= pointsRandomSample(*point_groups_out_tmp[i]);
+                    point_groups_out.push_back(std::make_unique<Eigen::Matrix3Xd>(points));
+
+                } else {
+                    if (DEBUG) printf("[DEBUG points num too little]\n");
+                    if (DEBUG) cout << point_groups_out_tmp[i]->cols() << endl;
                 }
             }
         }
@@ -124,12 +141,18 @@ namespace gpd {
 
         void PointGenerator::createPointGroup(const util::PointList &point_list,
                                          const candidate::Hand &hand, Eigen::Matrix3Xd &point_groups) const {
+
+            // 采样点邻域点云转换到手抓坐标系下
+            point_groups = transformToHand(point_list, hand);
+        }
+
+        Eigen::Matrix3Xd PointGenerator::pointsRandomSample(Eigen::Matrix3Xd &point_groups_in) const {
             std::random_device rd;
             std::mt19937 gen(rd());
 
-            // 采样点邻域点云转换到手抓坐标系下
-            Eigen::Matrix3Xd point_groups_eigen = transformToHand(point_list, hand);
-            int current_points_num = point_groups_eigen.cols();
+            Eigen::Matrix3Xd point_groups_out = Eigen::Matrix3Xd::Zero(1, grasp_points_num_);
+
+            int current_points_num = point_groups_in.cols();
             if (DEBUG) cout << "current_points_num: " << current_points_num << " grasp_points_num: " << grasp_points_num_ << endl;
 
             if (current_points_num > 0) {
@@ -140,12 +163,12 @@ namespace gpd {
                     for (int i = 0; i < grasp_points_num_; i++) { // 产生grasp_points_num_个随机数
                         if (i < current_points_num) { // 先采样当前所有点
                             if (DEBUG) std::cout << i << "(" << i << ") ";
-                            point_groups.col(i) = point_groups_eigen.col(i);
+                            point_groups_out.col(i) = point_groups_in.col(i);
                         }
                         else { // 当前点数不够, 后面的点随机重复采样
                             int random_indice = dis(gen);
                             if (DEBUG)std::cout << i << "(" << random_indice << ") ";
-                            point_groups.col(i) = point_groups_eigen.col(random_indice);
+                            point_groups_out.col(i) = point_groups_in.col(random_indice);
                         }
                     }
                     if (DEBUG) cout << endl;
@@ -157,7 +180,7 @@ namespace gpd {
                     for (int i = 0; i < grasp_points_num_; i++) { // 产生grasp_points_num_个随机数
                         int random_indice = dis(gen);
                         if (DEBUG) std::cout << i << "(" << random_indice << ") ";
-                        point_groups.col(i) = point_groups_eigen.col(random_indice);
+                        point_groups_out.col(i) = point_groups_in.col(random_indice);
                     }
                     if (DEBUG) cout << endl;
                 }
@@ -165,7 +188,9 @@ namespace gpd {
                 if (DEBUG) printf("[erro] current_points_num < 0");
             }
 
-            if (DEBUG) printf("point_groups.cols:%d\n", point_groups.cols());
+            if (DEBUG) printf("point_groups_out.cols:%d\n", point_groups_out.cols());
+
+            return point_groups_out;
         }
 
         Eigen::Matrix3Xd PointGenerator::transformToHand(

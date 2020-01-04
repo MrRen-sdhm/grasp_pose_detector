@@ -127,6 +127,8 @@ namespace gpd {
             void createPointGroup(const util::PointList &point_list,
                                                   const candidate::Hand &hand, Eigen::Matrix3Xd &point_groups) const;
 
+            Eigen::Matrix3Xd pointsRandomSample(Eigen::Matrix3Xd &point_groups_in) const;
+
             Eigen::Matrix3Xd transformToHand(
                     const util::PointList &point_list, const candidate::Hand &hand) const;
 

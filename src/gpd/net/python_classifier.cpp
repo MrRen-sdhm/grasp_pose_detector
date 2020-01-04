@@ -57,6 +57,7 @@ PythonClassifier::PythonClassifier(const std::string &model_file, const std::str
     pModule = PyImport_ImportModule(module_name_.c_str());
     if (pModule == NULL) {
         cout << "[Python] ERROR importing module" << endl;
+        PyErr_Print();
     }
 
     pDict = PyModule_GetDict(pModule);
@@ -167,6 +168,7 @@ std::vector<double> PythonClassifier::classifyPointsBatch(
         }
 
         printf("[Python] Groups num curr batch:%d\n", groups_num_curr_batch);
+        if (groups_num_curr_batch == 0) continue;
 
         /// 调用Python脚本处理point_list
         npy_intp Dims[3] = {groups_num_curr_batch, points_num, 3}; //给定维度信息

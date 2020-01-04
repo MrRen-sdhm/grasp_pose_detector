@@ -67,7 +67,7 @@ public:
      */
     static std::shared_ptr<Classifier> create(const std::string &model_file,
                                               const std::string &weights_file,
-                                              Device device = Device::eCPU,
+                                              Device device = Device::eGPU,
                                               int batch_size = 1);
 
     /**

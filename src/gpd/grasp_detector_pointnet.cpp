@@ -133,7 +133,7 @@ namespace gpd {
                 "plot_grasp_image", false);
 
         int grasp_points_num = config_file.getValueOfKey<int>("grasp_points_num", 750);
-        int min_point_limit = config_file.getValueOfKey<int>("grasp_points_num", 50);
+        int min_point_limit = config_file.getValueOfKey<int>("min_point_limit", 100);
 
         // Create object to create grasp points from grasp candidates (used for
         // classification).

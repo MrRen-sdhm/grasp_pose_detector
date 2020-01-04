@@ -117,8 +117,8 @@ int FingerHand::deepenHand(const Eigen::Matrix3Xd &points, double min_depth,
   FingerHand new_hand = *this;
   FingerHand last_new_hand = new_hand;
 
-  for (double depth = min_depth + DEEPEN_STEP_SIZE; depth <= max_depth;
-       depth += DEEPEN_STEP_SIZE) {
+//  for (double depth = min_depth + DEEPEN_STEP_SIZE; depth <= max_depth;
+  for (double depth = min_depth ; depth <= max_depth; depth += DEEPEN_STEP_SIZE) {
     // Check if the new hand placement is feasible
     new_hand.evaluateFingers(points, depth, hand_eroded_idx);
     if (!new_hand.fingers_(hand_eroded_idx) ||

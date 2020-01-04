@@ -40,8 +40,8 @@ def classify_pcs(local_pcs, output_cls=0):
     # concate pointclouds
     # local_pc_list = [local_pc, local_pc, local_pc]
     # inputs = torch.cat(local_pc_list, 0)
-    print("[Python] local_pcs.shape:", local_pcs.shape)
-    print("[Python] inputs.shape:", inputs.shape)
+    # print("[Python] local_pcs.shape:", local_pcs.shape)
+    # print("[Python] inputs.shape:", inputs.shape)
     output = model(inputs)
     output = output.softmax(1)
     # pred = output.data.max(1, keepdim=True)[1]
@@ -49,7 +49,7 @@ def classify_pcs(local_pcs, output_cls=0):
 
     output = output.cpu()
     output1 = list(output.data.numpy()[:, output_cls])
-    print("[output] ", output.data.numpy())
+    # print("[output] ", output.data.numpy())
     # print("[output1] ", output1)
     return output1
 
@@ -63,7 +63,7 @@ def main():
     #     [[0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2]]
     #     ])
 
-    local_pcs = torch.ones(5, 1024, 3)
+    local_pcs = torch.ones(512, 1024, 3)
     print(local_pcs, local_pcs.shape)
 
     weights_path = '/home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/pointnet_100.model'

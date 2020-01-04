@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-# import os  # don't delete
+import os
+import time
 import torch
 import torch.utils.data
 # import torch.nn as nn
@@ -11,11 +12,12 @@ import numpy as np
 import sys
 from os import path
 from model.pointnet import PointNetCls
+
 sys.path.append(path.dirname(path.dirname(path.abspath("__file__"))))
 
 # torch.cuda.manual_seed(1)  # don't delete
 
-grasp_points_num = 750
+grasp_points_num = 1024
 model = PointNetCls(num_points=grasp_points_num, input_chann=3, k=2)
 model.cuda()
 
@@ -28,7 +30,7 @@ def load_weight(weights_path):
     model.load_state_dict(torch.load(weights_path))
 
 
-def classify_pcs(local_pcs):
+def classify_pcs(local_pcs, output_cls=0):
     """ Classify point clouds FPS:680 """
     print("[Python] Classify point clouds")
 
@@ -46,27 +48,33 @@ def classify_pcs(local_pcs):
     # print("[pred] ", pred)
 
     output = output.cpu()
-    output1 = list(output.data.numpy()[:, 1])
-    # print("[output] ", output.data.numpy())
+    output1 = list(output.data.numpy()[:, output_cls])
+    print("[output] ", output.data.numpy())
     # print("[output1] ", output1)
     return output1
 
 
 def main():
-    local_pcs = np.array([
-        [[0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2]],
-        [[0.2, 0.3, 0.1], [0.2, 0.3, 0.1], [0.2, 0.3, 0.1], [0.2, 0.3, 0.1], [0.2, 0.3, 0.1], [0.2, 0.3, 0.1]],
-        [[0.9, 0.3, 0.7], [0.9, 0.3, 0.7], [0.9, 0.3, 0.7], [0.9, 0.3, 0.7], [0.9, 0.3, 0.7], [0.9, 0.3, 0.7]],
-        [[0.5, 0.4, 0.7], [0.5, 0.4, 0.7], [0.5, 0.4, 0.7], [0.5, 0.4, 0.7], [0.5, 0.4, 0.7], [0.5, 0.4, 0.7]],
-        [[0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2]]
-        ])
-    print(local_pcs)
+    # local_pcs = np.array([
+    #     [[0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2]],
+    #     [[0.2, 0.3, 0.1], [0.2, 0.3, 0.1], [0.2, 0.3, 0.1], [0.2, 0.3, 0.1], [0.2, 0.3, 0.1], [0.2, 0.3, 0.1]],
+    #     [[0.9, 0.3, 0.7], [0.9, 0.3, 0.7], [0.9, 0.3, 0.7], [0.9, 0.3, 0.7], [0.9, 0.3, 0.7], [0.9, 0.3, 0.7]],
+    #     [[0.5, 0.4, 0.7], [0.5, 0.4, 0.7], [0.5, 0.4, 0.7], [0.5, 0.4, 0.7], [0.5, 0.4, 0.7], [0.5, 0.4, 0.7]],
+    #     [[0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2]]
+    #     ])
 
-    weights_path = '/home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/state_dict_160.model'
+    local_pcs = torch.ones(5, 1024, 3)
+    print(local_pcs, local_pcs.shape)
+
+    weights_path = '/home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/pointnet_100.model'
     print('load model: {}'.format(weights_path))
     load_weight(weights_path)
-    for i in range(10000):
+
+    start = time.time()
+    for i in range(100):
         classify_pcs(local_pcs)
+
+    print("FPS:", 100/(time.time()-start))
 
 
 if __name__ == "__main__":

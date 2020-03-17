@@ -111,40 +111,20 @@ evalHands函数中使用transformToHandFrame将点云转换到手爪坐标系下
 
 ## Libtorch使用
 
-- eigen与libtorch切换：
+- Libtorch与Python Classifier切换：
 
-  修改classifier.cpp
+  删除build文件夹，重新执行cmake
 
-```C++
-//#include <gpd/net/eigen_classifier.h>
-#include <gpd/net/libtorch_classifier.h>
-
-//  return std::make_shared<EigenClassifier>(model_file, weights_file, device,
-//                                           batch_size);
-  return std::make_shared<LibtorchClassifier>(model_file, weights_file, device,
-                                           batch_size);
-```
-
-​	修改CmakeLists.txt
-
-```cmake
-# eigen
-#  add_library(${PROJECT_NAME}_conv_layer src/${PROJECT_NAME}/net/conv_layer.cpp)
-#  add_library(${PROJECT_NAME}_dense_layer src/${PROJECT_NAME}/net/dense_layer.cpp)
-#  set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/eigen_classifier.cpp)
-#  set(classifier_dep ${PROJECT_NAME}_conv_layer ${PROJECT_NAME}_dense_layer ${OpenCV_LIBRARIES})
-# libtorch
-set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/libtorch_classifier.cpp)
-set(classifier_dep ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
-```
-
-
+  ```sh
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_LIBTORCH=ON -DUSE_PYTHON=OFF
+  make -j8
+  ```
 
 - 测试Libtorch抓取姿态生成
 
-```bash
-./detect_grasps ../cfg/libtorch_params.cfg /home/sdhm/图片/kinect2点云样本/0004_cloud.pcd
-```
+  ```sh
+  ./detect_grasps ../cfg/libtorch_params.cfg /home/sdhm/图片/kinect2点云样本/0004_cloud.pcd
+  ```
 
 
 
@@ -160,4 +140,4 @@ set(classifier_dep ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
 
   ​	首先读取模型，后续仅使用模型
   
-  3、c++多线程中调用Python代码可能遇到程序卡死, 出现在Python中调用了需要多线程处理的函数。
+  3、C++回调函数中调用Python代码会因为获取不到GIL锁而产生死锁，在使用Python函数前需要显式地获得GIL锁。

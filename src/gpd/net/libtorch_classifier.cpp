@@ -34,10 +34,10 @@ LibtorchClassifier::LibtorchClassifier(const std::string &model_file,
     }
 }
 
-std::vector<float> LibtorchClassifier::classifyImages(
+std::vector<double> LibtorchClassifier::classifyImages(
         const std::vector<std::unique_ptr<cv::Mat>> &image_list) {
     const int channels = image_list[0]->channels();
-    std::vector<float> predictions;
+    std::vector<double> predictions;
 
     // Create a vector of torch inputs.
     std::vector<at::Tensor> inputs_tuple;
@@ -109,9 +109,9 @@ std::vector<float> LibtorchClassifier::classifyImages(
     return predictions;
 }
 
-std::vector<float> LibtorchClassifier::classifyPoints(
+std::vector<double> LibtorchClassifier::classifyPoints(
         const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) {
-    std::vector<float> predictions;
+    std::vector<double> predictions;
     const int points_num = point_groups[0]->cols(); // 点数
 
 #if DEGUBLIBTORCH
@@ -189,9 +189,9 @@ std::vector<float> LibtorchClassifier::classifyPoints(
     return predictions;
 }
 
-std::vector<float> LibtorchClassifier::classifyPointsBatch(
+std::vector<double> LibtorchClassifier::classifyPointsBatch(
         const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) {
-    std::vector<float> predictions;
+    std::vector<double> predictions;
     const int points_num = point_groups[0]->cols(); // 点数
 
     // Create a vector of torch inputs.

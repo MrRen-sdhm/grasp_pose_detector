@@ -1,6 +1,14 @@
 #include <string>
 #include <gpd/grasp_detector_pointnet.h>
 
+/**
+ * 使用Libtorch：
+ * ./detect_grasps ../cfg/libtorch_params.cfg /home/sdhm/图片/realsense_cloud_samples/00_cloud_0108.pcd
+ * 使用Python：
+ * ./detect_grasps ../cfg/pointnet_python_params.cfg /home/sdhm/图片/realsense_cloud_samples/00_cloud_0108.pcd
+ */
+
+
 namespace gpd {
 namespace apps {
 namespace detect_grasps {
@@ -71,7 +79,7 @@ int DoMain(int argc, char *argv[]) {
   detector.preprocessPointCloud(cloud);
 
   // Detect grasp poses.
-  for (int i = 0 ; i < 1; i++) { // 重复3次以便查看运行时间
+  for (int i = 0 ; i < 3; ++i) { // 重复3次以便查看运行时间
       detector.detectGrasps(cloud);
   }
 

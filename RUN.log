@@ -1,0 +1,982 @@
+######## Python 50 采样点
+/home/sdhm/Projects/GPD/build/detect_grasps_pointnet ../cfg/pointnet_python_params.cfg /home/sdhm/图片/realsense_cloud_samples/00_cloud_0108.pcd
+extension: pcd
+Loaded point cloud with 307200 points
+============ HAND GEOMETRY ======================
+finger_width: 0.015
+hand_outer_diameter: 0.13
+hand_depth: 0.075
+hand_height: 0.025
+init_bite: 0.001
+=================================================
+============ PLOTTING ========================
+plot_normals: false
+plot_samples false
+plot_candidates: false
+plot_workspace: false
+plot_filtered_candidates: false
+plot_valid_grasps: false
+plot_clustered_grasps: false
+plot_selected_grasps: false
+==============================================
+============ CLOUD PREPROCESSING =============
+voxelize: false
+voxl_size: 0.003
+remove_outliers: false
+workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+sample_above_plane: true
+==============================================
+============ CANDIDATE GENERATION ============
+num_samples: 50
+num_threads: 8
+nn_radius: 0.01
+hand axes: 0 1 2
+num_orientations: 4
+num_finger_placements: 5
+deepen_hand: true
+friction_coeff: 20.00
+min_viable: 6
+==============================================
+[DEBUG] dirname: /home/sdhm/Projects/GPD/python/pointnet base_name: pointnet_cls.py module_name: pointnet_cls
+[Python] Load weight: /home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/pointnet_100.model
+============ CLASSIFIER ======================
+model_file: /home/sdhm/Projects/GPD/python/pointnet/pointnet_cls.py
+weights_file: /home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/pointnet_100.model
+batch_size: 128
+min_score: 0.90
+==============================================
+grasp_points_num: 1024
+min_points_limit: 900
+min_points_depth: 0.020
+============ CANDIDATE FILTERING =============
+candidate_workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+min_aperture: 0.0000
+max_aperture: 0.1600
+==============================================
+============ CLUSTERING ======================
+min_inliers: 0
+==============================================
+
+Processing cloud with 307200 points.
+[INFO Organize] Input cloud is organized.
+Calculating surface normals ...
+Using integral images for surface normals estimation ...
+Calculated 307200 surface normals in 0.0683s (mode: integral images).
+Reversing direction of normals that do not point to at least one camera ...
+ reversed 71372 normals
+ runtime (reverse normals): 0.00143693
+[INFO Organize] Cloud is not organized after filterWorkspace.
+Sampling above plane ...
+ Plane fit succeeded. 30120 samples above plane.
+ runtime (plane fit): 0.0183457
+[INFO] subsample SampleIndices.
+====> CLOUD PROCESS TIME: 0.0922s
+Estimating local reference frames ...
+Estimated 50 frames in 0.0009s.
+Finding hand poses ...
+Found 50 hand sets in 1.01s
+====> HAND SEARCH TIME: 1.03577
+[INFO] Generated 50 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 600
+[INFO] Number of grasp candidates valid: 103
+[INFO] Number of grasp candidates within workspace and gripper width: 69
+[INFO] Created 35 Point groups in 0.0828s
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (35, 1024, 3)
+[Python] inputs.shape: (35, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Total runtime(omp): 0.056169s
+======== SELECTED GRASPS ========
+Grasp 0: 1
+Grasp 1: 1
+Grasp 2: 1
+Grasp 3: 1
+Grasp 4: 1
+Grasp 5: 1
+Grasp 6: 0.999997
+Grasp 7: 0.999987
+Grasp 8: 0.999967
+Grasp 9: 0.999822
+Selected the 10 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 1.0361s
+ 2. Descriptor extraction: 0.0836s
+ 3. Classification: 0.0562s
+==========
+ TOTAL: 1.1761s
+
+Estimating local reference frames ...
+Estimated 50 frames in 0.0006s.
+Finding hand poses ...
+Found 50 hand sets in 1.03s
+====> HAND SEARCH TIME: 1.06428
+[INFO] Generated 50 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 600
+[INFO] Number of grasp candidates valid: 103
+[INFO] Number of grasp candidates within workspace and gripper width: 69
+[INFO] Created 35 Point groups in 0.0874s
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (35, 1024, 3)
+[Python] inputs.shape: (35, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Total runtime(omp): 0.055148s
+======== SELECTED GRASPS ========
+Grasp 0: 1
+Grasp 1: 1
+Grasp 2: 1
+Grasp 3: 1
+Grasp 4: 1
+Grasp 5: 1
+Grasp 6: 0.999999
+Grasp 7: 0.999992
+Grasp 8: 0.999945
+Grasp 9: 0.999006
+Selected the 10 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 1.0645s
+ 2. Descriptor extraction: 0.0884s
+ 3. Classification: 0.0552s
+==========
+ TOTAL: 1.2082s
+
+Estimating local reference frames ...
+Estimated 50 frames in 0.0006s.
+Finding hand poses ...
+Found 50 hand sets in 1.05s
+====> HAND SEARCH TIME: 1.07921
+[INFO] Generated 50 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 600
+[INFO] Number of grasp candidates valid: 103
+[INFO] Number of grasp candidates within workspace and gripper width: 69
+[INFO] Created 35 Point groups in 0.0828s
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (35, 1024, 3)
+[Python] inputs.shape: (35, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Total runtime(omp): 0.053896s
+======== SELECTED GRASPS ========
+Grasp 0: 1
+Grasp 1: 1
+Grasp 2: 1
+Grasp 3: 1
+Grasp 4: 1
+Grasp 5: 1
+Grasp 6: 0.999999
+Grasp 7: 0.999986
+Grasp 8: 0.999976
+Grasp 9: 0.999896
+Selected the 10 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 1.0795s
+ 2. Descriptor extraction: 0.0836s
+ 3. Classification: 0.0539s
+==========
+ TOTAL: 1.2171s
+
+
+Process finished with exit code 0
+
+
+
+
+######## Python 100 采样点
+/home/sdhm/Projects/GPD/build/detect_grasps_pointnet ../cfg/pointnet_python_params.cfg /home/sdhm/图片/realsense_cloud_samples/00_cloud_0108.pcd
+extension: pcd
+Loaded point cloud with 307200 points
+============ HAND GEOMETRY ======================
+finger_width: 0.015
+hand_outer_diameter: 0.13
+hand_depth: 0.075
+hand_height: 0.025
+init_bite: 0.001
+=================================================
+============ PLOTTING ========================
+plot_normals: false
+plot_samples false
+plot_candidates: false
+plot_workspace: false
+plot_filtered_candidates: false
+plot_valid_grasps: false
+plot_clustered_grasps: false
+plot_selected_grasps: false
+==============================================
+============ CLOUD PREPROCESSING =============
+voxelize: false
+voxl_size: 0.003
+remove_outliers: false
+workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+sample_above_plane: true
+==============================================
+============ CANDIDATE GENERATION ============
+num_samples: 100
+num_threads: 8
+nn_radius: 0.01
+hand axes: 0 1 2
+num_orientations: 4
+num_finger_placements: 5
+deepen_hand: true
+friction_coeff: 20.00
+min_viable: 6
+==============================================
+[DEBUG] dirname: /home/sdhm/Projects/GPD/python/pointnet base_name: pointnet_cls.py module_name: pointnet_cls
+[Python] Load weight: /home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/pointnet_100.model
+============ CLASSIFIER ======================
+model_file: /home/sdhm/Projects/GPD/python/pointnet/pointnet_cls.py
+weights_file: /home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/pointnet_100.model
+batch_size: 128
+min_score: 0.90
+==============================================
+grasp_points_num: 1024
+min_points_limit: 900
+min_points_depth: 0.020
+============ CANDIDATE FILTERING =============
+candidate_workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+min_aperture: 0.0000
+max_aperture: 0.1600
+==============================================
+============ CLUSTERING ======================
+min_inliers: 0
+==============================================
+
+Processing cloud with 307200 points.
+[INFO Organize] Input cloud is organized.
+Calculating surface normals ...
+Using integral images for surface normals estimation ...
+Calculated 307200 surface normals in 0.0687s (mode: integral images).
+Reversing direction of normals that do not point to at least one camera ...
+ reversed 71372 normals
+ runtime (reverse normals): 0.00140976
+[INFO Organize] Cloud is not organized after filterWorkspace.
+Sampling above plane ...
+ Plane fit succeeded. 30120 samples above plane.
+ runtime (plane fit): 0.0182541
+[INFO] subsample SampleIndices.
+====> CLOUD PROCESS TIME: 0.0922s
+Estimating local reference frames ...
+Estimated 100 frames in 0.0013s.
+Finding hand poses ...
+Found 100 hand sets in 2.12s
+====> HAND SEARCH TIME: 2.15362
+[INFO] Generated 100 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1200
+[INFO] Number of grasp candidates valid: 249
+[INFO] Number of grasp candidates within workspace and gripper width: 196
+[INFO] Created 91 Point groups in 0.1872s
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (91, 1024, 3)
+[Python] inputs.shape: (91, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Total runtime(omp): 0.160058s
+======== SELECTED GRASPS ========
+Grasp 0: 1
+Grasp 1: 1
+Grasp 2: 1
+Grasp 3: 1
+Grasp 4: 1
+Grasp 5: 1
+Grasp 6: 1
+Grasp 7: 1
+Grasp 8: 1
+Grasp 9: 1
+Selected the 10 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 2.1539s
+ 2. Descriptor extraction: 0.1881s
+ 3. Classification: 0.1601s
+==========
+ TOTAL: 2.5023s
+
+Estimating local reference frames ...
+Estimated 100 frames in 0.0010s.
+Finding hand poses ...
+Found 100 hand sets in 2.16s
+====> HAND SEARCH TIME: 2.18708
+[INFO] Generated 100 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1200
+[INFO] Number of grasp candidates valid: 249
+[INFO] Number of grasp candidates within workspace and gripper width: 196
+[INFO] Created 91 Point groups in 0.1903s
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (91, 1024, 3)
+[Python] inputs.shape: (91, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Total runtime(omp): 0.149001s
+======== SELECTED GRASPS ========
+Grasp 0: 1
+Grasp 1: 1
+Grasp 2: 1
+Grasp 3: 1
+Grasp 4: 1
+Grasp 5: 1
+Grasp 6: 1
+Grasp 7: 1
+Grasp 8: 1
+Grasp 9: 1
+Selected the 10 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 2.1873s
+ 2. Descriptor extraction: 0.1911s
+ 3. Classification: 0.1490s
+==========
+ TOTAL: 2.5276s
+
+Estimating local reference frames ...
+Estimated 100 frames in 0.0010s.
+Finding hand poses ...
+Found 100 hand sets in 2.16s
+====> HAND SEARCH TIME: 2.18808
+[INFO] Generated 100 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1200
+[INFO] Number of grasp candidates valid: 249
+[INFO] Number of grasp candidates within workspace and gripper width: 196
+[INFO] Created 91 Point groups in 0.1903s
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (91, 1024, 3)
+[Python] inputs.shape: (91, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Total runtime(omp): 0.143965s
+======== SELECTED GRASPS ========
+Grasp 0: 1
+Grasp 1: 1
+Grasp 2: 1
+Grasp 3: 1
+Grasp 4: 1
+Grasp 5: 1
+Grasp 6: 1
+Grasp 7: 1
+Grasp 8: 1
+Grasp 9: 1
+Selected the 10 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 2.1883s
+ 2. Descriptor extraction: 0.1911s
+ 3. Classification: 0.1440s
+==========
+ TOTAL: 2.5236s
+
+
+Process finished with exit code 0
+
+
+
+
+
+######## Python 150 采样点
+/home/sdhm/Projects/GPD/build/detect_grasps_pointnet ../cfg/pointnet_python_params.cfg /home/sdhm/图片/realsense_cloud_samples/00_cloud_0108.pcd
+extension: pcd
+Loaded point cloud with 307200 points
+============ HAND GEOMETRY ======================
+finger_width: 0.015
+hand_outer_diameter: 0.13
+hand_depth: 0.075
+hand_height: 0.025
+init_bite: 0.001
+=================================================
+============ PLOTTING ========================
+plot_normals: false
+plot_samples false
+plot_candidates: false
+plot_workspace: false
+plot_filtered_candidates: false
+plot_valid_grasps: false
+plot_clustered_grasps: false
+plot_selected_grasps: false
+==============================================
+============ CLOUD PREPROCESSING =============
+voxelize: false
+voxl_size: 0.003
+remove_outliers: false
+workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+sample_above_plane: true
+==============================================
+============ CANDIDATE GENERATION ============
+num_samples: 150
+num_threads: 8
+nn_radius: 0.01
+hand axes: 0 1 2
+num_orientations: 4
+num_finger_placements: 5
+deepen_hand: true
+friction_coeff: 20.00
+min_viable: 6
+==============================================
+[DEBUG] dirname: /home/sdhm/Projects/GPD/python/pointnet base_name: pointnet_cls.py module_name: pointnet_cls
+[Python] Load weight: /home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/pointnet_100.model
+============ CLASSIFIER ======================
+model_file: /home/sdhm/Projects/GPD/python/pointnet/pointnet_cls.py
+weights_file: /home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/pointnet_100.model
+batch_size: 128
+min_score: 0.90
+==============================================
+grasp_points_num: 1024
+min_points_limit: 900
+min_points_depth: 0.020
+============ CANDIDATE FILTERING =============
+candidate_workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+min_aperture: 0.0000
+max_aperture: 0.1600
+==============================================
+============ CLUSTERING ======================
+min_inliers: 0
+==============================================
+
+Processing cloud with 307200 points.
+[INFO Organize] Input cloud is organized.
+Calculating surface normals ...
+Using integral images for surface normals estimation ...
+Calculated 307200 surface normals in 0.0677s (mode: integral images).
+Reversing direction of normals that do not point to at least one camera ...
+ reversed 71372 normals
+ runtime (reverse normals): 0.00140912
+[INFO Organize] Cloud is not organized after filterWorkspace.
+Sampling above plane ...
+ Plane fit succeeded. 30120 samples above plane.
+ runtime (plane fit): 0.018157
+[INFO] subsample SampleIndices.
+====> CLOUD PROCESS TIME: 0.0913s
+Estimating local reference frames ...
+Estimated 150 frames in 0.0033s.
+Finding hand poses ...
+Found 150 hand sets in 3.08s
+====> HAND SEARCH TIME: 3.10751
+[INFO] Generated 150 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1800
+[INFO] Number of grasp candidates valid: 391
+[INFO] Number of grasp candidates within workspace and gripper width: 305
+[INFO] Created 137 Point groups in 0.2577s
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (128, 1024, 3)
+[Python] inputs.shape: (128, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (9, 1024, 3)
+[Python] inputs.shape: (9, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Total runtime(omp): 0.217934s
+======== SELECTED GRASPS ========
+Grasp 0: 1
+Grasp 1: 1
+Grasp 2: 1
+Grasp 3: 1
+Grasp 4: 1
+Grasp 5: 1
+Grasp 6: 1
+Grasp 7: 1
+Grasp 8: 1
+Grasp 9: 1
+Selected the 10 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 3.1078s
+ 2. Descriptor extraction: 0.2586s
+ 3. Classification: 0.2179s
+==========
+ TOTAL: 3.5846s
+
+Estimating local reference frames ...
+Estimated 150 frames in 0.0014s.
+Finding hand poses ...
+Found 150 hand sets in 3.08s
+====> HAND SEARCH TIME: 3.11124
+[INFO] Generated 150 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1800
+[INFO] Number of grasp candidates valid: 391
+[INFO] Number of grasp candidates within workspace and gripper width: 305
+[INFO] Created 138 Point groups in 0.2545s
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (128, 1024, 3)
+[Python] inputs.shape: (128, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (10, 1024, 3)
+[Python] inputs.shape: (10, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Total runtime(omp): 0.204406s
+======== SELECTED GRASPS ========
+Grasp 0: 1
+Grasp 1: 1
+Grasp 2: 1
+Grasp 3: 1
+Grasp 4: 1
+Grasp 5: 1
+Grasp 6: 1
+Grasp 7: 1
+Grasp 8: 1
+Grasp 9: 1
+Selected the 10 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 3.1115s
+ 2. Descriptor extraction: 0.2554s
+ 3. Classification: 0.2044s
+==========
+ TOTAL: 3.5715s
+
+Estimating local reference frames ...
+Estimated 150 frames in 0.0070s.
+Finding hand poses ...
+Found 150 hand sets in 3.09s
+====> HAND SEARCH TIME: 3.12399
+[INFO] Generated 150 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1800
+[INFO] Number of grasp candidates valid: 391
+[INFO] Number of grasp candidates within workspace and gripper width: 305
+[INFO] Created 138 Point groups in 0.2624s
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (128, 1024, 3)
+[Python] inputs.shape: (128, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Classify point clouds...
+[Python] local_pcs.shape: (10, 1024, 3)
+[Python] inputs.shape: (10, 3, 1024)
+[Python] Classify point clouds done.
+[Python] Total runtime(omp): 0.203491s
+======== SELECTED GRASPS ========
+Grasp 0: 1
+Grasp 1: 1
+Grasp 2: 1
+Grasp 3: 1
+Grasp 4: 1
+Grasp 5: 1
+Grasp 6: 1
+Grasp 7: 1
+Grasp 8: 1
+Grasp 9: 1
+Selected the 10 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 3.1242s
+ 2. Descriptor extraction: 0.2633s
+ 3. Classification: 0.2035s
+==========
+ TOTAL: 3.5913s
+
+
+Process finished with exit code 0
+
+
+
+
+######## Libtorch 50 采样点
+/home/sdhm/Projects/GPD/build/detect_grasps_pointnet ../cfg/libtorch_params.cfg /home/sdhm/图片/realsense_cloud_samples/00_cloud_0108.pcd
+extension: pcd
+Loaded point cloud with 307200 points
+============ HAND GEOMETRY ======================
+finger_width: 0.01
+hand_outer_diameter: 0.12
+hand_depth: 0.06
+hand_height: 0.02
+init_bite: 0.01
+=================================================
+============ PLOTTING ========================
+plot_normals: false
+plot_samples false
+plot_candidates: false
+plot_workspace: false
+plot_filtered_candidates: false
+plot_valid_grasps: false
+plot_clustered_grasps: false
+plot_selected_grasps: false
+==============================================
+============ CLOUD PREPROCESSING =============
+voxelize: false
+voxl_size: 0.003
+remove_outliers: false
+workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+sample_above_plane: true
+==============================================
+============ CANDIDATE GENERATION ============
+num_samples: 50
+num_threads: 8
+nn_radius: 0.01
+hand axes: 0 1 2
+num_orientations: 4
+num_finger_placements: 10
+deepen_hand: true
+friction_coeff: 20.00
+min_viable: 6
+==============================================
+[Libtorch] Load module runtime(omp): 1.098881s
+============ CLASSIFIER ======================
+model_file:
+weights_file: /home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/libtorch_gpu.pt
+batch_size: 256
+min_score: 0.00
+==============================================
+grasp_points_num: 750
+min_points_limit: 100
+min_points_depth: 0.010
+============ CANDIDATE FILTERING =============
+candidate_workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+min_aperture: 0.0000
+max_aperture: 0.1600
+==============================================
+============ CLUSTERING ======================
+min_inliers: 0
+==============================================
+
+Processing cloud with 307200 points.
+[INFO Organize] Input cloud is organized.
+Calculating surface normals ...
+Using integral images for surface normals estimation ...
+Calculated 307200 surface normals in 0.0693s (mode: integral images).
+Reversing direction of normals that do not point to at least one camera ...
+ reversed 71372 normals
+ runtime (reverse normals): 0.00137688
+[INFO Organize] Cloud is not organized after filterWorkspace.
+Sampling above plane ...
+ Plane fit succeeded. 30120 samples above plane.
+ runtime (plane fit): 0.018313
+[INFO] subsample SampleIndices.
+====> CLOUD PROCESS TIME: 0.0931s
+Estimating local reference frames ...
+Estimated 50 frames in 0.0013s.
+Finding hand poses ...
+Found 50 hand sets in 0.96s
+====> HAND SEARCH TIME: 0.992581
+[INFO] Generated 50 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 600
+[INFO] Number of grasp candidates valid: 114
+[INFO] Number of grasp candidates within workspace and gripper width: 97
+[INFO] Created 97 Point groups in 0.0984s
+======== SELECTED GRASPS ========
+Grasp 0: 0.987849
+Selected the 1 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 0.9929s
+ 2. Descriptor extraction: 0.0993s
+ 3. Classification: 0.9170s
+==========
+ TOTAL: 2.0102s
+
+Estimating local reference frames ...
+Estimated 50 frames in 0.0059s.
+Finding hand poses ...
+Found 50 hand sets in 0.97s
+====> HAND SEARCH TIME: 1.0015
+[INFO] Generated 50 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 600
+[INFO] Number of grasp candidates valid: 114
+[INFO] Number of grasp candidates within workspace and gripper width: 97
+[INFO] Created 97 Point groups in 0.0953s
+======== SELECTED GRASPS ========
+Grasp 0: 0.989849
+Selected the 1 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 1.0018s
+ 2. Descriptor extraction: 0.0962s
+ 3. Classification: 0.1577s
+==========
+ TOTAL: 1.2674s
+
+Estimating local reference frames ...
+Estimated 50 frames in 0.0006s.
+Finding hand poses ...
+Found 50 hand sets in 0.97s
+====> HAND SEARCH TIME: 0.994984
+[INFO] Generated 50 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 600
+[INFO] Number of grasp candidates valid: 114
+[INFO] Number of grasp candidates within workspace and gripper width: 97
+[INFO] Created 97 Point groups in 0.1000s
+======== SELECTED GRASPS ========
+Grasp 0: 0.990553
+Selected the 1 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 0.9957s
+ 2. Descriptor extraction: 0.1008s
+ 3. Classification: 0.1594s
+==========
+ TOTAL: 1.2562s
+
+
+Process finished with exit code 0
+
+
+
+######## Libtorch 100 采样点
+/home/sdhm/Projects/GPD/build/detect_grasps_pointnet ../cfg/libtorch_params.cfg /home/sdhm/图片/realsense_cloud_samples/00_cloud_0108.pcd
+extension: pcd
+Loaded point cloud with 307200 points
+============ HAND GEOMETRY ======================
+finger_width: 0.01
+hand_outer_diameter: 0.12
+hand_depth: 0.06
+hand_height: 0.02
+init_bite: 0.01
+=================================================
+============ PLOTTING ========================
+plot_normals: false
+plot_samples false
+plot_candidates: false
+plot_workspace: false
+plot_filtered_candidates: false
+plot_valid_grasps: false
+plot_clustered_grasps: false
+plot_selected_grasps: false
+==============================================
+============ CLOUD PREPROCESSING =============
+voxelize: false
+voxl_size: 0.003
+remove_outliers: false
+workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+sample_above_plane: true
+==============================================
+============ CANDIDATE GENERATION ============
+num_samples: 100
+num_threads: 8
+nn_radius: 0.01
+hand axes: 0 1 2
+num_orientations: 4
+num_finger_placements: 10
+deepen_hand: true
+friction_coeff: 20.00
+min_viable: 6
+==============================================
+[Libtorch] Load module runtime(omp): 1.070968s
+============ CLASSIFIER ======================
+model_file:
+weights_file: /home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/libtorch_gpu.pt
+batch_size: 256
+min_score: 0.00
+==============================================
+grasp_points_num: 750
+min_points_limit: 100
+min_points_depth: 0.010
+============ CANDIDATE FILTERING =============
+candidate_workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+min_aperture: 0.0000
+max_aperture: 0.1600
+==============================================
+============ CLUSTERING ======================
+min_inliers: 0
+==============================================
+
+Processing cloud with 307200 points.
+[INFO Organize] Input cloud is organized.
+Calculating surface normals ...
+Using integral images for surface normals estimation ...
+Calculated 307200 surface normals in 0.0687s (mode: integral images).
+Reversing direction of normals that do not point to at least one camera ...
+ reversed 71372 normals
+ runtime (reverse normals): 0.00139034
+[INFO Organize] Cloud is not organized after filterWorkspace.
+Sampling above plane ...
+ Plane fit succeeded. 30120 samples above plane.
+ runtime (plane fit): 0.0182335
+[INFO] subsample SampleIndices.
+====> CLOUD PROCESS TIME: 0.0924s
+Estimating local reference frames ...
+Estimated 100 frames in 0.0029s.
+Finding hand poses ...
+Found 100 hand sets in 1.92s
+====> HAND SEARCH TIME: 1.95157
+[INFO] Generated 100 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1200
+[INFO] Number of grasp candidates valid: 195
+[INFO] Number of grasp candidates within workspace and gripper width: 122
+[INFO] Created 122 Point groups in 0.1156s
+======== SELECTED GRASPS ========
+Grasp 0: 0.994329
+Selected the 1 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 1.9519s
+ 2. Descriptor extraction: 0.1165s
+ 3. Classification: 0.9578s
+==========
+ TOTAL: 3.0263s
+
+Estimating local reference frames ...
+Estimated 100 frames in 0.0041s.
+Finding hand poses ...
+Found 100 hand sets in 1.93s
+====> HAND SEARCH TIME: 1.96715
+[INFO] Generated 100 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1200
+[INFO] Number of grasp candidates valid: 195
+[INFO] Number of grasp candidates within workspace and gripper width: 122
+[INFO] Created 122 Point groups in 0.1137s
+======== SELECTED GRASPS ========
+Grasp 0: 0.99476
+Selected the 1 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 1.9674s
+ 2. Descriptor extraction: 0.1145s
+ 3. Classification: 0.2022s
+==========
+ TOTAL: 2.2843s
+
+Estimating local reference frames ...
+Estimated 100 frames in 0.0010s.
+Finding hand poses ...
+Found 100 hand sets in 1.96s
+====> HAND SEARCH TIME: 1.99339
+[INFO] Generated 100 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1200
+[INFO] Number of grasp candidates valid: 195
+[INFO] Number of grasp candidates within workspace and gripper width: 122
+[INFO] Created 122 Point groups in 0.1164s
+======== SELECTED GRASPS ========
+Grasp 0: 0.992817
+Selected the 1 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 1.9937s
+ 2. Descriptor extraction: 0.1173s
+ 3. Classification: 0.2047s
+==========
+ TOTAL: 2.3159s
+
+
+Process finished with exit code 0
+
+
+
+######## Libtorch 150 采样点
+/home/sdhm/Projects/GPD/build/detect_grasps_pointnet ../cfg/libtorch_params.cfg /home/sdhm/图片/realsense_cloud_samples/00_cloud_0108.pcd
+extension: pcd
+Loaded point cloud with 307200 points
+============ HAND GEOMETRY ======================
+finger_width: 0.01
+hand_outer_diameter: 0.12
+hand_depth: 0.06
+hand_height: 0.02
+init_bite: 0.01
+=================================================
+============ PLOTTING ========================
+plot_normals: false
+plot_samples false
+plot_candidates: false
+plot_workspace: false
+plot_filtered_candidates: false
+plot_valid_grasps: false
+plot_clustered_grasps: false
+plot_selected_grasps: false
+==============================================
+============ CLOUD PREPROCESSING =============
+voxelize: false
+voxl_size: 0.003
+remove_outliers: false
+workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+sample_above_plane: true
+==============================================
+============ CANDIDATE GENERATION ============
+num_samples: 150
+num_threads: 8
+nn_radius: 0.01
+hand axes: 0 1 2
+num_orientations: 4
+num_finger_placements: 10
+deepen_hand: true
+friction_coeff: 20.00
+min_viable: 6
+==============================================
+[Libtorch] Load module runtime(omp): 1.076434s
+============ CLASSIFIER ======================
+model_file:
+weights_file: /home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/libtorch_gpu.pt
+batch_size: 256
+min_score: 0.00
+==============================================
+grasp_points_num: 750
+min_points_limit: 100
+min_points_depth: 0.010
+============ CANDIDATE FILTERING =============
+candidate_workspace: -0.20 0.20 -0.10 0.15 -1.00 1.00
+min_aperture: 0.0000
+max_aperture: 0.1600
+==============================================
+============ CLUSTERING ======================
+min_inliers: 0
+==============================================
+
+Processing cloud with 307200 points.
+[INFO Organize] Input cloud is organized.
+Calculating surface normals ...
+Using integral images for surface normals estimation ...
+Calculated 307200 surface normals in 0.0671s (mode: integral images).
+Reversing direction of normals that do not point to at least one camera ...
+ reversed 71372 normals
+ runtime (reverse normals): 0.00137955
+[INFO Organize] Cloud is not organized after filterWorkspace.
+Sampling above plane ...
+ Plane fit succeeded. 30120 samples above plane.
+ runtime (plane fit): 0.0181022
+[INFO] subsample SampleIndices.
+====> CLOUD PROCESS TIME: 0.0907s
+Estimating local reference frames ...
+Estimated 150 frames in 0.0023s.
+Finding hand poses ...
+Found 150 hand sets in 2.84s
+====> HAND SEARCH TIME: 2.87602
+[INFO] Generated 150 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1800
+[INFO] Number of grasp candidates valid: 269
+[INFO] Number of grasp candidates within workspace and gripper width: 239
+[INFO] Created 238 Point groups in 0.1874s
+======== SELECTED GRASPS ========
+Grasp 0: 0.995059
+Selected the 1 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 2.8763s
+ 2. Descriptor extraction: 0.1883s
+ 3. Classification: 1.1584s
+==========
+ TOTAL: 4.2231s
+
+Estimating local reference frames ...
+Estimated 150 frames in 0.0015s.
+Finding hand poses ...
+Found 150 hand sets in 2.84s
+====> HAND SEARCH TIME: 2.8689
+[INFO] Generated 150 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1800
+[INFO] Number of grasp candidates valid: 269
+[INFO] Number of grasp candidates within workspace and gripper width: 239
+[INFO] Created 238 Point groups in 0.1973s
+======== SELECTED GRASPS ========
+Grasp 0: 0.994521
+Selected the 1 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 2.8692s
+ 2. Descriptor extraction: 0.1982s
+ 3. Classification: 0.3850s
+==========
+ TOTAL: 3.4526s
+
+Estimating local reference frames ...
+Estimated 150 frames in 0.0015s.
+Finding hand poses ...
+Found 150 hand sets in 2.86s
+====> HAND SEARCH TIME: 2.88588
+[INFO] Generated 150 hand sets.
+Filtering grasps outside of workspace ...
+[INFO] Number of grasp candidates generated: 1800
+[INFO] Number of grasp candidates valid: 269
+[INFO] Number of grasp candidates within workspace and gripper width: 239
+[INFO] Created 239 Point groups in 0.1923s
+======== SELECTED GRASPS ========
+Grasp 0: 0.994402
+Selected the 1 best grasps.
+========    RUNTIMES     ========
+ 1. Candidate generation: 2.8862s
+ 2. Descriptor extraction: 0.1931s
+ 3. Classification: 0.4985s
+==========
+ TOTAL: 3.5781s
+
+
+Process finished with exit code 0

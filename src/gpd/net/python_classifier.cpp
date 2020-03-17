@@ -95,6 +95,13 @@ std::vector<double> PythonClassifier::classifyPoints(
         }
     }
 
+    if(!gil_init) { // 确保GIL锁已被创建
+        PyEval_InitThreads();
+        PyEval_SaveThread();
+        gil_init = true;
+    }
+
+    // 获得GIL锁
     PyGILState_STATE gstate;
     gstate = PyGILState_Ensure();
 
@@ -135,6 +142,7 @@ std::vector<double> PythonClassifier::classifyPoints(
 //    Py_DECREF(pFunc);
 //    Py_DECREF(FuncBack);
 
+    // 释放GIL锁
     PyGILState_Release(gstate);
 
     printf("[Python] Total runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_start);
@@ -144,8 +152,6 @@ std::vector<double> PythonClassifier::classifyPoints(
 std::vector<double> PythonClassifier::classifyPointsBatch(
         const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) {
     std::vector<double> predictions;
-
-    printf("[DEBUG] classifyPointsBatch\n");
 
     const int groups_num = point_groups.size(); //点云数
     const int points_num = point_groups[0]->cols(); //各点云点数

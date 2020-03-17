@@ -59,8 +59,7 @@ void HandSet::evalHands(const util::PointList &point_list,
       Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY()).toRotationMatrix();
 
   // This object is used to evaluate the finger placement.
-  FingerHand finger_hand(hand_geometry_.finger_width_,
-                         hand_geometry_.outer_diameter_, hand_geometry_.depth_,
+  FingerHand finger_hand(hand_geometry_.finger_width_, hand_geometry_.outer_diameter_, hand_geometry_.depth_,
                          num_finger_placements_);
 
   // Set the forward and lateral axis of the robot hand frame (closing direction
@@ -77,23 +76,19 @@ void HandSet::evalHands(const util::PointList &point_list,
     // Rotate points into this hand orientation.
     Eigen::Matrix3d frame_rot;
     frame_rot.noalias() = frame_ * ROT_BINORMAL * rot;
-    util::PointList point_list_frame = point_list.transformToHandFrame(
-        local_frame.getSample(), frame_rot.transpose());
+    util::PointList point_list_frame = point_list.transformToHandFrame(local_frame.getSample(), frame_rot.transpose());
 
     // Crop points on hand height.
-    util::PointList point_list_cropped =
-        point_list_frame.cropByHandHeight(hand_geometry_.height_);
+    util::PointList point_list_cropped = point_list_frame.cropByHandHeight(hand_geometry_.height_);
 
     // Evaluate finger placements for this orientation.
-    finger_hand.evaluateFingers(point_list_cropped.getPoints(),
-                                hand_geometry_.init_bite_);
+    finger_hand.evaluateFingers(point_list_cropped.getPoints(), hand_geometry_.init_bite_);
 
     // Check that there is at least one feasible 2-finger placement.
     finger_hand.evaluateHand();
 
     // Create the grasp candidate.
-    hands_[start + i] = std::make_unique<Hand>(local_frame.getSample(),
-                                               frame_rot, finger_hand, 0.0);
+    hands_[start + i] = std::make_unique<Hand>(local_frame.getSample(), frame_rot, finger_hand, 0.0);
 
     // Check that there is at least one feasible 2-finger placement.
     if (finger_hand.getHand().any()) {
@@ -108,16 +103,13 @@ void HandSet::evalHands(const util::PointList &point_list,
       }
       // Calculate points in the closing region of the hand.
       std::vector<int> indices_closing =
-          finger_hand.computePointsInClosingRegion(
-              point_list_cropped.getPoints(), finger_idx);
+          finger_hand.computePointsInClosingRegion( point_list_cropped.getPoints(), finger_idx);
       if (indices_closing.size() == 0) {
         continue;
       }
 
       is_valid_[start + i] = true;
-      modifyCandidate(*hands_[start + i], local_frame.getSample(),
-                      point_list_cropped, indices_closing, frame_rot,
-                      finger_hand);
+      modifyCandidate(*hands_[start + i], local_frame.getSample(), point_list_cropped, indices_closing, frame_rot, finger_hand);
     }
   }
 }

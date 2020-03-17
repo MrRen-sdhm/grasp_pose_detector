@@ -9,22 +9,18 @@ FingerHand::FingerHand(double finger_width, double hand_outer_diameter,
       hand_depth_(hand_depth),
       lateral_axis_(-1),
       forward_axis_(-1) {
+
   // Calculate the finger spacing.
   Eigen::VectorXd fs_half;
   fs_half.setLinSpaced(num_placements, 0.0, hand_outer_diameter - finger_width);
   finger_spacing_.resize(2 * num_placements);
-  finger_spacing_
-      << (fs_half.array() - hand_outer_diameter + finger_width_).matrix(),
-      fs_half;
+  finger_spacing_ << (fs_half.array() - hand_outer_diameter + finger_width_).matrix(), fs_half;
 
-  fingers_ = Eigen::Array<bool, 1, Eigen::Dynamic>::Constant(
-      1, 2 * num_placements, false);
-  hand_ =
-      Eigen::Array<bool, 1, Eigen::Dynamic>::Constant(1, num_placements, false);
+  fingers_ = Eigen::Array<bool, 1, Eigen::Dynamic>::Constant(1, 2 * num_placements, false);
+  hand_ = Eigen::Array<bool, 1, Eigen::Dynamic>::Constant(1, num_placements, false);
 }
 
-void FingerHand::evaluateFingers(const Eigen::Matrix3Xd &points, double bite,
-                                 int idx) {
+void FingerHand::evaluateFingers(const Eigen::Matrix3Xd &points, double bite, int idx) {
   // Calculate top and bottom of the hand (top = fingertip, bottom = base).
   top_ = bite;
   bottom_ = bite - hand_depth_;
@@ -104,12 +100,10 @@ int FingerHand::chooseMiddleHand() {
   return idx;
 }
 
-int FingerHand::deepenHand(const Eigen::Matrix3Xd &points, double min_depth,
-                           double max_depth) {
+int FingerHand::deepenHand(const Eigen::Matrix3Xd &points, double min_depth, double max_depth) {
   // Choose middle hand.
   int hand_eroded_idx = chooseMiddleHand();  // middle index
-  int opposite_idx =
-      fingers_.size() / 2 + hand_eroded_idx;  // opposite finger index
+  int opposite_idx = fingers_.size() / 2 + hand_eroded_idx;  // opposite finger index
 
   // Attempt to deepen hand (move as far onto the object as possible without
   // collision).
@@ -121,8 +115,7 @@ int FingerHand::deepenHand(const Eigen::Matrix3Xd &points, double min_depth,
   for (double depth = min_depth ; depth <= max_depth; depth += DEEPEN_STEP_SIZE) {
     // Check if the new hand placement is feasible
     new_hand.evaluateFingers(points, depth, hand_eroded_idx);
-    if (!new_hand.fingers_(hand_eroded_idx) ||
-        !new_hand.fingers_(opposite_idx)) {
+    if (!new_hand.fingers_(hand_eroded_idx) || !new_hand.fingers_(opposite_idx)) {
       break;
     }
 
@@ -138,8 +131,7 @@ int FingerHand::deepenHand(const Eigen::Matrix3Xd &points, double min_depth,
   return hand_eroded_idx;
 }
 
-std::vector<int> FingerHand::computePointsInClosingRegion(
-    const Eigen::Matrix3Xd &points, int idx) {
+std::vector<int> FingerHand::computePointsInClosingRegion(const Eigen::Matrix3Xd &points, int idx) {
   // Find feasible finger placement.
   if (idx == -1) {
     for (int i = 0; i < hand_.cols(); i++) {
@@ -170,8 +162,7 @@ std::vector<int> FingerHand::computePointsInClosingRegion(
   return indices;
 }
 
-bool FingerHand::isGapFree(const Eigen::Matrix3Xd &points,
-                           const std::vector<int> &indices, int idx) {
+bool FingerHand::isGapFree(const Eigen::Matrix3Xd &points, const std::vector<int> &indices, int idx) {
   for (int i = 0; i < indices.size(); i++) {
     const double &x = points(lateral_axis_, indices[i]);
 

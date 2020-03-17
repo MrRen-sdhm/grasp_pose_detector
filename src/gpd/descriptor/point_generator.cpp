@@ -5,12 +5,13 @@ namespace gpd {
     namespace descriptor {
 
         PointGenerator::PointGenerator(const candidate::HandGeometry &hand_geometry, int num_threads,
-                int num_orientations, int grasp_points_num, int min_point_limit, bool is_plotting, bool remove_plane)
+                int num_orientations, int grasp_points_num, int min_points_limit, float min_points_depth, bool remove_plane)
                 : hand_geometry_(hand_geometry),
                   num_threads_(num_threads),
                   num_orientations_(num_orientations),
                   grasp_points_num_(grasp_points_num),
-                  min_point_limit_(min_point_limit),
+                  min_points_limit_(min_points_limit),
+                  min_points_depth_(min_points_depth),
                   remove_plane_(remove_plane) {
         }
 
@@ -63,10 +64,10 @@ namespace gpd {
                     nn_points_list[i] = point_list.slice(nn_indices);
                 }
             }
-            printf("neighborhoods search time: %3.4f\n", omp_get_wtime() - t_slice);
+//            printf("neighborhoods search time: %3.4f\n", omp_get_wtime() - t_slice);
 
             createPointList(hand_set_list, nn_points_list, point_groups_out, hands_out);
-            printf("Created %zu Point groups in %3.4fs\n", point_groups_out.size(),
+            printf("[INFO] Created %zu Point groups in %3.4fs\n", point_groups_out.size(),
                    omp_get_wtime() - t0);
         }
 
@@ -104,18 +105,26 @@ namespace gpd {
 
             // min point num filter
             for (int i = 0; i < point_groups_out_tmp.size(); i++) {
-                if (point_groups_out_tmp[i]->cols() >= min_point_limit_) {
+                if (point_groups_out_tmp[i]->cols() >= min_points_limit_) {
                     if (DEBUG) printf("[DEBUG points num satisfied]\n");
                     if (DEBUG) cout << point_groups_out_tmp[i]->cols() << endl;
 
-                    hands_out.push_back(std::move(hands_out_tmp[i]));
-
                     // random sample
                     Eigen::Matrix3Xd points= pointsRandomSample(*point_groups_out_tmp[i]);
-                    point_groups_out.push_back(std::make_unique<Eigen::Matrix3Xd>(points));
+
+                    // points depth filter
+                    float min_depth = points.row(0).minCoeff(); // x
+                    if (DEBUG) cout << "[DEBUG x min] " << min_depth << endl;
+                    if (min_depth < hand_geometry_.depth_ - min_points_depth_) {
+                        if (DEBUG) cout << "[DEBUG depth enough] " << endl;
+                        point_groups_out.push_back(std::make_unique<Eigen::Matrix3Xd>(points));
+                        hands_out.push_back(std::move(hands_out_tmp[i]));
+                    } else {
+                        if (DEBUG) cout << "[DEBUG not depth enough] " << endl;
+                    }
 
                 } else {
-                    if (DEBUG) printf("[DEBUG points num too little]\n");
+                    if (DEBUG) printf("[DEBUG Too few points]\n");
                     if (DEBUG) cout << point_groups_out_tmp[i]->cols() << endl;
                 }
             }
@@ -256,7 +265,23 @@ namespace gpd {
                 if (DEBUG) printf("\033[0;36m%s\033[0m\n", "[INFO] point num in closing area <= 1.");
                 return points_close_p2h;
             }
+
 #if DEBUG
+            // 闭合区域点云采样
+            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_closing_sample ( new pcl::PointCloud<pcl::PointXYZ> ); // 手抓闭合区域采样点云
+            Eigen::Matrix3Xd points_sample= pointsRandomSample(points_close_p2h); // 手抓闭合区域采样点
+            printf("[DEBUG] points_sample size: %lu\n", points_sample.cols());
+            for (int i = 0; i < points_sample.cols(); i++) {
+                pcl::PointXYZ p;
+
+                p.x = points_sample(0, i);
+                p.y = points_sample(1, i);
+                p.z = points_sample(2, i);
+                cloud_closing_sample->points.push_back(p);
+            }
+
+            printf("[DEBUG] cloud_closing_sample size: %lu\n", cloud_closing_sample->size());
+
             if (points_close_p2h.cols() > 0) {
 //                printf("[INFO] point num too small: %d indice: %zu\n", points_close_p2h.cols(), indices.size());
 //                // 将手抓坐标系内的点转换回点云坐标系
@@ -277,9 +302,12 @@ namespace gpd {
                 pcl::visualization::PCLVisualizer viewer("points in closing area");
                 viewer.setSize(640, 480);
                 viewer.setBackgroundColor(1.0, 1.0, 1.0);
-//                viewer.addCoordinateSystem(0.1, "Coordinate");
+                viewer.addCoordinateSystem(0.05, "Coordinate");
+
                 pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_color_handler(
-                        cloud_closing, 0, 0, 255);
+                        cloud_closing, 0, 255, 255);
+                pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> cloud_closing_sample_color_handler(
+                        cloud_closing_sample, 255, 0, 0);
 //                pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_h2p_cloud_color_handler(
 //                        points_h2p_cloud, 0, 0, 255);
                 pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> points_neibor_color_handler(
@@ -288,6 +316,8 @@ namespace gpd {
 
                 // 手抓坐标系下闭合区域点云
                 viewer.addPointCloud<pcl::PointXYZ>(cloud_closing, points_color_handler, "points_p2h");
+                // 手抓坐标系下闭合区域采样点云
+                viewer.addPointCloud<pcl::PointXYZ>(cloud_closing_sample, cloud_closing_sample_color_handler, "cloud_closing_sample");
                 // 原始点云坐标系下闭合区域点云
 //                viewer.addPointCloud<pcl::PointXYZ>(points_h2p_cloud, points_h2p_cloud_color_handler, "points_h2p");
                 // 原始点云
@@ -311,7 +341,8 @@ namespace gpd {
                 cout << "[debug] hand_world_frame:\n" << hand_world_frame << endl;
                 cout << "[debug] hand_world_position:\n" << hand_world_position << endl;
 
-                viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "points_p2h");
+                viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "points_p2h");
+                viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "cloud_closing_sample");
 //                viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "points_h2p");
 //                viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "cloud_neibor");
 

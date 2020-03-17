@@ -21,8 +21,7 @@ HandSearch::HandSearch(Parameters params)
                                        params_.num_orientations_);
 }
 
-std::vector<std::unique_ptr<HandSet>> HandSearch::searchHands(
-    const util::Cloud &cloud_cam) const {
+std::vector<std::unique_ptr<HandSet>> HandSearch::searchHands(const util::Cloud &cloud_cam) const {
   double t0_total = omp_get_wtime();
 
   // Create KdTree for neighborhood search.
@@ -35,12 +34,9 @@ std::vector<std::unique_ptr<HandSet>> HandSearch::searchHands(
   std::vector<LocalFrame> frames;
   FrameEstimator frame_estimator(params_.num_threads_);
   if (cloud_cam.getSamples().cols() > 0) {  // use samples
-    frames = frame_estimator.calculateLocalFrames(
-        cloud_cam, cloud_cam.getSamples(), params_.nn_radius_frames_, kdtree);
-  } else if (cloud_cam.getSampleIndices().size() > 0) {  // use indices
-    frames = frame_estimator.calculateLocalFrames(
-        cloud_cam, cloud_cam.getSampleIndices(), params_.nn_radius_frames_,
-        kdtree);
+    frames = frame_estimator.calculateLocalFrames(cloud_cam, cloud_cam.getSamples(), params_.nn_radius_frames_, kdtree);
+  } else if (!cloud_cam.getSampleIndices().empty()) {  // use indices
+    frames = frame_estimator.calculateLocalFrames( cloud_cam, cloud_cam.getSampleIndices(), params_.nn_radius_frames_, kdtree);
   } else {
     std::cout << "Error: No samples or no indices!\n";
     std::vector<std::unique_ptr<HandSet>> hand_set_list(0);
@@ -54,8 +50,7 @@ std::vector<std::unique_ptr<HandSet>> HandSearch::searchHands(
 
   // 2. Evaluate possible hand placements.
   std::cout << "Finding hand poses ...\n";
-  std::vector<std::unique_ptr<HandSet>> hand_set_list =
-      evalHands(cloud_cam, frames, kdtree);
+  std::vector<std::unique_ptr<HandSet>> hand_set_list = evalHands(cloud_cam, frames, kdtree);
 
   const double t2 = omp_get_wtime();
   std::cout << "====> HAND SEARCH TIME: " << t2 - t0_total << std::endl;
@@ -63,10 +58,8 @@ std::vector<std::unique_ptr<HandSet>> HandSearch::searchHands(
   return hand_set_list;
 }
 
-std::vector<int> HandSearch::reevaluateHypotheses(
-    const util::Cloud &cloud_cam,
-    std::vector<std::unique_ptr<candidate::Hand>> &grasps,
-    bool plot_samples) const {
+std::vector<int> HandSearch::reevaluateHypotheses( const util::Cloud &cloud_cam,
+    std::vector<std::unique_ptr<candidate::Hand>> &grasps, bool plot_samples) const {
   // Create KdTree for neighborhood search.
   const Eigen::MatrixXi &camera_source = cloud_cam.getCameraSource();
   const Eigen::Matrix3Xd &cloud_normals = cloud_cam.getNormals();
@@ -157,12 +150,9 @@ std::vector<std::unique_ptr<candidate::HandSet>> HandSearch::evalHands(
   std::vector<int> nn_indices;
   std::vector<float> nn_dists;
   const PointCloudRGB::Ptr &cloud = cloud_cam.getCloudProcessed();
-  const Eigen::Matrix3Xd points =
-      cloud->getMatrixXfMap().block(0, 0, 3, cloud->size()).cast<double>();
+  const Eigen::Matrix3Xd points = cloud->getMatrixXfMap().block(0, 0, 3, cloud->size()).cast<double>();
   std::vector<std::unique_ptr<HandSet>> hand_set_list(frames.size());
-  const util::PointList point_list(points, cloud_cam.getNormals(),
-                                   cloud_cam.getCameraSource(),
-                                   cloud_cam.getViewPoints());
+  const util::PointList point_list(points, cloud_cam.getNormals(), cloud_cam.getCameraSource(), cloud_cam.getViewPoints());
   util::PointList nn_points;
 
 #ifdef _OPENMP  // parallelization using OpenMP
@@ -181,8 +171,7 @@ std::vector<std::unique_ptr<candidate::HandSet>> HandSearch::evalHands(
     }
   }
 
-  printf("Found %d hand sets in %3.2fs\n", (int)hand_set_list.size(),
-         omp_get_wtime() - t1);
+  printf("Found %d hand sets in %3.2fs\n", (int)hand_set_list.size(), omp_get_wtime() - t1);
 
   return hand_set_list;
 }

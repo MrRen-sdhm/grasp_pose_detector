@@ -84,7 +84,7 @@ namespace gpd {
              * calculating images
              */
             PointGenerator(const candidate::HandGeometry &hand_geometry, int num_threads, int num_orientations,
-                    int grasp_points_num, int min_point_limit, bool is_plotting, bool remove_plane);
+                    int grasp_points_num, int min_points_limit, float min_points_depth, bool remove_plane);
 
             /**
              * \brief Create a list of point groups for a given list of grasp candidates.
@@ -157,7 +157,8 @@ namespace gpd {
             int num_threads_;
             int num_orientations_;
             int grasp_points_num_;
-            int min_point_limit_;
+            int min_points_limit_;
+            float min_points_depth_;
             candidate::HandGeometry hand_geometry_;
             bool is_plotting_;
             bool remove_plane_;

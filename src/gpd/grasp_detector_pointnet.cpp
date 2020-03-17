@@ -117,11 +117,12 @@ namespace gpd {
             int batch_size = config_file.getValueOfKey<int>("batch_size", 256);
             classifier_ = net::Classifier::create(
                     model_file, weights_file, static_cast<net::Classifier::Device>(device), batch_size);
-            min_score_ = config_file.getValueOfKey<int>("min_score", 0);
+            min_score_ = config_file.getValueOfKey<double>("min_score", 0);
             printf("============ CLASSIFIER ======================\n");
             printf("model_file: %s\n", model_file.c_str());
             printf("weights_file: %s\n", weights_file.c_str());
             printf("batch_size: %d\n", batch_size);
+            printf("min_score: %.2f\n", min_score_);
             printf("==============================================\n");
         }
 
@@ -129,17 +130,18 @@ namespace gpd {
         bool remove_plane = config_file.getValueOfKey<bool>(
                 "remove_plane_before_image_calculation", false);
 
-        bool plot_grasp_image = config_file.getValueOfKey<bool>(
-                "plot_grasp_image", false);
-
         int grasp_points_num = config_file.getValueOfKey<int>("grasp_points_num", 750);
-        int min_point_limit = config_file.getValueOfKey<int>("min_point_limit", 100);
+        int min_points_limit = config_file.getValueOfKey<int>("min_points_limit", 100);
+        float min_points_depth = config_file.getValueOfKey<double>("min_points_depth", 0.01);
+        printf("grasp_points_num: %d\n", grasp_points_num);
+        printf("min_points_limit: %d\n", min_points_limit);
+        printf("min_points_depth: %.3f\n", min_points_depth);
 
         // Create object to create grasp points from grasp candidates (used for
         // classification).
         point_generator_ = std::make_unique<descriptor::PointGenerator>(
                 hand_geom, hand_search_params.num_threads_, hand_search_params.num_orientations_, grasp_points_num,
-                min_point_limit, plot_grasp_image, remove_plane);
+                min_points_limit, min_points_depth, remove_plane);
 
         // Read grasp filtering parameters based on robot workspace and gripper width.
         workspace_grasps_ = config_file.getValueOfKeyAsStdVectorDouble(
@@ -186,7 +188,7 @@ namespace gpd {
 
         // Check if the point cloud is empty.
         if (cloud.getCloudOriginal()->size() == 0) {
-            printf("ERROR: Point cloud is empty!");
+            printf("[WARN] Point cloud is empty!");
             hands_out.resize(0);
             return hands_out;
         }
@@ -209,23 +211,20 @@ namespace gpd {
 
         // 1. Generate grasp candidates.
         double t0_candidates = omp_get_wtime();
-        std::vector<std::unique_ptr<candidate::HandSet>> hand_set_list =
-                candidates_generator_->generateGraspCandidateSets(cloud);
-        printf("Generated %zu hand sets.\n", hand_set_list.size());
-        if (hand_set_list.size() == 0) {
+        std::vector<std::unique_ptr<candidate::HandSet>> hand_set_list = candidates_generator_->generateGraspCandidateSets(cloud);
+        printf("[INFO] Generated %zu hand sets.\n", hand_set_list.size());
+        if (hand_set_list.empty()) {
             return hands_out;
         }
         double t_candidates = omp_get_wtime() - t0_candidates;
         if (plot_candidates_) {
-            plotter_->plotFingers3D(hand_set_list, cloud.getCloudOriginal(),
-                                    "Grasp candidates", hand_geom);
+            plotter_->plotFingers3D(hand_set_list, cloud.getCloudOriginal(), "Grasp candidates", hand_geom);
         }
 
         // 2. Filter the candidates.
         double t0_filter = omp_get_wtime();
-        std::vector<std::unique_ptr<candidate::HandSet>> hand_set_list_filtered =
-                filterGraspsWorkspace(hand_set_list, workspace_grasps_);
-        if (hand_set_list_filtered.size() == 0) {
+        std::vector<std::unique_ptr<candidate::HandSet>> hand_set_list_filtered = filterGraspsWorkspace(hand_set_list, workspace_grasps_);
+        if (hand_set_list_filtered.empty()) {
             return hands_out;
         }
 
@@ -233,19 +232,16 @@ namespace gpd {
             plotter_->plotCloud(cloud.getCloudProcessed(), "Filtered Grasps Workspace");
         }
         if (plot_filtered_candidates_) {
-            plotter_->plotFingers3D(hand_set_list_filtered, cloud.getCloudOriginal(),
-                                    "Filtered Grasps (Aperture, Workspace)", hand_geom);
+            plotter_->plotFingers3D(hand_set_list_filtered, cloud.getCloudOriginal(), "Filtered Grasps (Aperture, Workspace)", hand_geom);
         }
         if (filter_approach_direction_) {
-            hand_set_list_filtered =
-                    filterGraspsDirection(hand_set_list_filtered, direction_, thresh_rad_);
+            hand_set_list_filtered = filterGraspsDirection(hand_set_list_filtered, direction_, thresh_rad_);
             if (plot_filtered_candidates_) {
-                plotter_->plotFingers3D(hand_set_list_filtered, cloud.getCloudOriginal(),
-                                        "Filtered Grasps (Approach)", hand_geom);
+                plotter_->plotFingers3D(hand_set_list_filtered, cloud.getCloudOriginal(), "Filtered Grasps (Approach)", hand_geom);
             }
         }
         double t_filter = omp_get_wtime() - t0_filter;
-        if (hand_set_list_filtered.size() == 0) {
+        if (hand_set_list_filtered.empty()) {
             return hands_out;
         }
 
@@ -257,7 +253,10 @@ namespace gpd {
         point_generator_->createPointGroups(cloud, hand_set_list_filtered, point_groups, hands);
         double t_points = omp_get_wtime() - t0_points;
 
-//        printf("[INFO] Create points in the hand closing area done.\n");
+        if (point_groups.empty()) { // created 0 point_groups
+            printf("[WARN] Created 0 point groups!\n");
+            return hands;
+        }
 
         // 4. Classify the grasp candidates by pointnet.
         double t0_classify = omp_get_wtime();
@@ -272,8 +271,7 @@ namespace gpd {
         // 5. Select the <num_selected> highest scoring grasps.
         hands = selectGrasps(hands);
         if (plot_valid_grasps_) {
-            plotter_->plotFingers3D(hands, cloud.getCloudOriginal(), "Valid Grasps",
-                                    hand_geom);
+            plotter_->plotFingers3D(hands, cloud.getCloudOriginal(), "Valid Grasps", hand_geom);
         }
 
         // 6. Cluster the grasps.
@@ -289,8 +287,7 @@ namespace gpd {
                 }
             }
             if (plot_clustered_grasps_) {
-                plotter_->plotFingers3D(clusters, cloud.getCloudOriginal(),
-                                        "Clustered Grasps", hand_geom);
+                plotter_->plotFingers3D(clusters, cloud.getCloudOriginal(), "Clustered Grasps", hand_geom);
             }
         } else {
             clusters = std::move(hands);
@@ -337,45 +334,35 @@ namespace gpd {
         candidates_generator_->preprocessPointCloud(cloud, rect);
     }
 
-    std::vector<std::unique_ptr<candidate::HandSet>>
-    GraspDetectorPointNet::filterGraspsWorkspace(
-            std::vector<std::unique_ptr<candidate::HandSet>> &hand_set_list,
-            const std::vector<double> &workspace) const {
+    std::vector<std::unique_ptr<candidate::HandSet>> GraspDetectorPointNet::filterGraspsWorkspace(
+            std::vector<std::unique_ptr<candidate::HandSet>> &hand_set_list, const std::vector<double> &workspace) const {
         int remaining = 0;
+        int hands_cnt = 0;
+        int valid_hands_cnt = 0;
         std::vector<std::unique_ptr<candidate::HandSet>> hand_set_list_out;
         printf("Filtering grasps outside of workspace ...\n");
 
-        const candidate::HandGeometry &hand_geometry =
-                candidates_generator_->getHandSearchParams().hand_geometry_;
+        const candidate::HandGeometry &hand_geometry = candidates_generator_->getHandSearchParams().hand_geometry_;
 
         for (int i = 0; i < hand_set_list.size(); i++) {
-            const std::vector<std::unique_ptr<candidate::Hand>> &hands =
-                    hand_set_list[i]->getHands();
-            Eigen::Array<bool, 1, Eigen::Dynamic> is_valid =
-                    hand_set_list[i]->getIsValid();
+            const std::vector<std::unique_ptr<candidate::Hand>> &hands = hand_set_list[i]->getHands();
+            Eigen::Array<bool, 1, Eigen::Dynamic> is_valid = hand_set_list[i]->getIsValid();
 
             for (int j = 0; j < hands.size(); j++) {
                 if (!is_valid(j)) {
                     continue;
                 }
+
                 double half_width = 0.5 * hand_geometry.outer_diameter_;
-                Eigen::Vector3d left_bottom =
-                        hands[j]->getPosition() + half_width * hands[j]->getBinormal();
-                Eigen::Vector3d right_bottom =
-                        hands[j]->getPosition() - half_width * hands[j]->getBinormal();
-                Eigen::Vector3d left_top =
-                        left_bottom + hand_geometry.depth_ * hands[j]->getApproach();
-                Eigen::Vector3d right_top =
-                        left_bottom + hand_geometry.depth_ * hands[j]->getApproach();
-                Eigen::Vector3d approach =
-                        hands[j]->getPosition() - 0.05 * hands[j]->getApproach();
+                Eigen::Vector3d left_bottom = hands[j]->getPosition() + half_width * hands[j]->getBinormal();
+                Eigen::Vector3d right_bottom = hands[j]->getPosition() - half_width * hands[j]->getBinormal();
+                Eigen::Vector3d left_top = left_bottom + hand_geometry.depth_ * hands[j]->getApproach();
+                Eigen::Vector3d right_top = left_bottom + hand_geometry.depth_ * hands[j]->getApproach();
+                Eigen::Vector3d approach = hands[j]->getPosition() - 0.05 * hands[j]->getApproach();
                 Eigen::VectorXd x(5), y(5), z(5);
-                x << left_bottom(0), right_bottom(0), left_top(0), right_top(0),
-                        approach(0);
-                y << left_bottom(1), right_bottom(1), left_top(1), right_top(1),
-                        approach(1);
-                z << left_bottom(2), right_bottom(2), left_top(2), right_top(2),
-                        approach(2);
+                x << left_bottom(0), right_bottom(0), left_top(0), right_top(0), approach(0);
+                y << left_bottom(1), right_bottom(1), left_top(1), right_top(1), approach(1);
+                z << left_bottom(2), right_bottom(2), left_top(2), right_top(2), approach(2);
 
                 // Ensure the object fits into the hand and avoid grasps outside the
                 // workspace.
@@ -389,16 +376,21 @@ namespace gpd {
                 } else {
                     is_valid(j) = false;
                 }
+
+                valid_hands_cnt += 1;
             }
 
             if (is_valid.any()) {
                 hand_set_list_out.push_back(std::move(hand_set_list[i]));
                 hand_set_list_out[hand_set_list_out.size() - 1]->setIsValid(is_valid);
             }
+
+            hands_cnt += hands.size();
         }
 
-        printf("Number of grasp candidates within workspace and gripper width: %d\n",
-               remaining);
+        printf("[INFO] Number of grasp candidates generated: %d\n", hands_cnt);
+        printf("[INFO] Number of grasp candidates valid: %d\n", valid_hands_cnt);
+        printf("[INFO] Number of grasp candidates within workspace and gripper width: %d\n", remaining);
 
         return hand_set_list_out;
     }
@@ -413,12 +405,11 @@ namespace gpd {
 //        printf("Selecting the %d highest scoring grasps ...\n", num_selected_);
 
         int middle = std::min((int)hands.size(), num_selected_);
-        std::partial_sort(hands.begin(), hands.begin() + middle, hands.end(),
-                          isScoreGreater);
+        std::partial_sort(hands.begin(), hands.begin() + middle, hands.end(), isScoreGreater);
         std::vector<std::unique_ptr<candidate::Hand>> hands_out;
 
         for (int i = 0; i < middle; i++) {
-            hands_out.push_back(std::move(hands[i]));
+            if (hands[i]->getScore() > min_score_)  hands_out.push_back(std::move(hands[i]));
 //            printf(" grasp #%d, score: %3.4f\n", i, hands_out[i]->getScore());
         }
 

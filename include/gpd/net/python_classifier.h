@@ -94,6 +94,7 @@ namespace net {
         string module_name_; // python script name
         string func_name_; // function name
         int batch_size_;
+        bool gil_init = false;
 
     };
 }  // namespace net

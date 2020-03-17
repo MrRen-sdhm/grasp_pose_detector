@@ -153,8 +153,7 @@ std::vector<std::unique_ptr<Hand>> CandidatesGenerator::generateGraspCandidates(
 std::vector<std::unique_ptr<HandSet>>
 CandidatesGenerator::generateGraspCandidateSets(const util::Cloud &cloud_cam) {
   // Find sets of grasp candidates.
-  std::vector<std::unique_ptr<HandSet>> hand_set_list =
-      hand_search_->searchHands(cloud_cam);
+  std::vector<std::unique_ptr<HandSet>> hand_set_list = hand_search_->searchHands(cloud_cam);
 
   return hand_set_list;
 }

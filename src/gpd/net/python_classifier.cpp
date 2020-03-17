@@ -38,7 +38,7 @@ PythonClassifier::PythonClassifier(const std::string &model_file, const std::str
     char str[] = "Python";
     Py_SetProgramName(str);
     if(!Py_IsInitialized())
-        cout << "init faild/n" << endl;
+        cout << "Python init faild/n" << endl;
 
     // get model dirname
     string dirname = get_dirname(model_file);
@@ -95,6 +95,9 @@ std::vector<double> PythonClassifier::classifyPoints(
         }
     }
 
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+
     npy_intp Dims[3] = {groups_num, points_num, 3}; //给定维度信息
 
     PyObject *PyArray  = PyArray_SimpleNewFromData(3, Dims, NPY_DOUBLE, point_list.data()); //生成包含这个多维数组的PyObject对象，使用PyArray_SimpleNewFromData函数，第一个参数2表示维度，第二个为维度数组Dims,第三个参数指出数组的类型，第四个参数为数组
@@ -132,6 +135,8 @@ std::vector<double> PythonClassifier::classifyPoints(
 //    Py_DECREF(pFunc);
 //    Py_DECREF(FuncBack);
 
+    PyGILState_Release(gstate);
+
     printf("[Python] Total runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_start);
     return predictions;
 }
@@ -140,16 +145,18 @@ std::vector<double> PythonClassifier::classifyPointsBatch(
         const std::vector<std::unique_ptr<Eigen::Matrix3Xd>> &point_groups) {
     std::vector<double> predictions;
 
+    printf("[DEBUG] classifyPointsBatch\n");
+
     const int groups_num = point_groups.size(); //点云数
     const int points_num = point_groups[0]->cols(); //各点云点数
-    printf("[DEBUG] points num:%d\n", points_num);
-    printf("[DEBUG] groups num:%d\n", groups_num);
+//    printf("[DEBUG] points num:%d\n", points_num);
+//    printf("[DEBUG] groups num:%d\n", groups_num);
 
     double omp_timer_start = omp_get_wtime();
     std::vector<double> point_list;
 
     size_t batch_num =  point_groups.size()/batch_size_ + 1;
-    printf("[Python] batch_size:%d batch_num: %zu\n", batch_size_, batch_num);
+//    printf("[DEBUG] batch_size:%d batch_num: %zu\n", batch_size_, batch_num);
 
     for (size_t batch = 0; batch < batch_num; batch++) { // 最后一次循环为不完整的batch
         point_list.clear(); // Clear the vector of input points.
@@ -167,8 +174,19 @@ std::vector<double> PythonClassifier::classifyPointsBatch(
             groups_num_curr_batch ++; // 已写入点云计数
         }
 
-        printf("[Python] Groups num curr batch:%d\n", groups_num_curr_batch);
+//        printf("[Python] Groups num curr batch:%d\n", groups_num_curr_batch);
         if (groups_num_curr_batch == 0) continue;
+
+
+        if(!gil_init) { // 确保GIL锁已被创建
+            PyEval_InitThreads();
+            PyEval_SaveThread();
+            gil_init = true;
+        }
+
+        // 获得GIL锁
+        PyGILState_STATE gstate;
+        gstate = PyGILState_Ensure();
 
         /// 调用Python脚本处理point_list
         npy_intp Dims[3] = {groups_num_curr_batch, points_num, 3}; //给定维度信息
@@ -198,6 +216,9 @@ std::vector<double> PythonClassifier::classifyPointsBatch(
 //        WARN: don't do that!
 //        Py_DECREF(PyArray);
 //        Py_DECREF(ArgArray);
+
+        // 释放GIL锁
+        PyGILState_Release(gstate);
     }
 
     printf("[Python] Total runtime(omp): %3.6fs\n", omp_get_wtime() - omp_timer_start);

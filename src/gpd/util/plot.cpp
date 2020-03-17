@@ -769,12 +769,10 @@ namespace gpd {
           // draw the point cloud
           pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(
                   cloud);
-          viewer->addPointCloud<pcl::PointXYZRGBA>(cloud, rgb,
-                                                   "registered point cloud");
+          viewer->addPointCloud<pcl::PointXYZRGBA>(cloud, rgb, "registered point cloud");
 
           // draw the normals
-          addCloudNormalsToViewer(viewer, normals_cloud, 2, blue, red,
-                                  std::string("cloud"), std::string("normals"));
+          addCloudNormalsToViewer(viewer, normals_cloud, 1, blue, red, std::string("cloud"), std::string("normals"));
 
           runViewer(viewer);
         }
@@ -864,16 +862,12 @@ namespace gpd {
                                            const std::string &cloud_name,
                                            const std::string &normals_name) {
           viewer->addPointCloud<pcl::PointNormal>(cloud, cloud_name);
-          viewer->setPointCloudRenderingProperties(
-                  pcl::visualization::PCL_VISUALIZER_COLOR, color_cloud[0], color_cloud[1],
+          viewer->setPointCloudRenderingProperties( pcl::visualization::PCL_VISUALIZER_COLOR, color_cloud[0], color_cloud[1],
                   color_cloud[2], cloud_name);
-          viewer->setPointCloudRenderingProperties(
-                  pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 6, cloud_name);
-          viewer->addPointCloudNormals<pcl::PointNormal>(cloud, 1, 0.01, normals_name);
-          viewer->setPointCloudRenderingProperties(
-                  pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, line_width, normals_name);
-          viewer->setPointCloudRenderingProperties(
-                  pcl::visualization::PCL_VISUALIZER_COLOR, color_normals[0],
+          viewer->setPointCloudRenderingProperties( pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, cloud_name);
+          viewer->addPointCloudNormals<pcl::PointNormal>(cloud, 5, 0.01, normals_name);
+          viewer->setPointCloudRenderingProperties( pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, line_width, normals_name);
+          viewer->setPointCloudRenderingProperties( pcl::visualization::PCL_VISUALIZER_COLOR, color_normals[0],
                   color_normals[1], color_normals[2], normals_name);
         }
 
@@ -888,9 +882,10 @@ namespace gpd {
 
         PCLVisualizer Plot::createViewer(std::string title) {
           PCLVisualizer viewer(new pcl::visualization::PCLVisualizer(title));
-          viewer->setPosition(0, 0);
+          viewer->setPosition(600, 300);
           viewer->setSize(640, 480);
           viewer->setBackgroundColor(1.0, 1.0, 1.0);
+          viewer->setCameraPosition(0, 0, -0.5, 0, -1, 0);
           viewer->registerKeyboardCallback(&Plot::keyboardEventOccurred, *this,
                                            (void *)viewer.get());
 

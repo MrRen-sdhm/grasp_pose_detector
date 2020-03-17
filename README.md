@@ -100,6 +100,13 @@ finger_hand.cpp:控制手靠近物体的步长，可理解为距离物体的最�
 const double DEEPEN_STEP_SIZE = 0.01;
 ```
 
+## 重要函数
+
+```
+hand_set.cpp
+evalHands函数中使用transformToHandFrame将点云转换到手爪坐标系下。
+```
+
 
 
 ## Libtorch使用
@@ -152,3 +159,5 @@ set(classifier_dep ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
   ​	将数组或图片转换为ndarray
 
   ​	首先读取模型，后续仅使用模型
+  
+  3、c++多线程中调用Python代码可能遇到程序卡死, 出现在Python中调用了需要多线程处理的函数。

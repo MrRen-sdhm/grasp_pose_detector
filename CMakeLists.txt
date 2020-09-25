@@ -171,6 +171,7 @@ add_executable(${PROJECT_NAME}_generate_candidates src/generate_candidates.cpp)
 #add_executable(${PROJECT_NAME}_test_grasp_image src/tests/test_grasp_image.cpp)
 # add_executable(${PROJECT_NAME}_test_conv_layer src/tests/test_conv_layer.cpp)
 # add_executable(${PROJECT_NAME}_test_hdf5 src/tests/test_hdf5.cpp)
+add_executable(${PROJECT_NAME}_gen_normals_seg_plane src/tools/gen_normals_seg_plane.cpp)
 
 
 ## Specify libraries to link a library or executable target against
@@ -300,6 +301,15 @@ target_link_libraries(${PROJECT_NAME}_point_generator
 #        ${PROJECT_NAME}_plot
 #        ${PROJECT_NAME}_candidates_generator
 #        ${PCL_LIBRARIES})
+
+target_link_libraries(${PROJECT_NAME}_gen_normals_seg_plane
+#        ${PROJECT_NAME}_image_generator
+#        ${PROJECT_NAME}_classifier
+#        ${PROJECT_NAME}_plot
+#        ${PROJECT_NAME}_candidates_generator
+        ${PROJECT_NAME}_plot
+        ${PROJECT_NAME}_cloud
+        ${PCL_LIBRARIES})
 
 #target_link_libraries(${PROJECT_NAME}_detect_grasps
 #        ${PROJECT_NAME}_grasp_detector

@@ -32,7 +32,7 @@ def load_weight(weights_path):
 
 
 def classify_pcs(local_pcs, output_cls=0):
-    """ Classify point clouds FPS:680 """
+    """ Classify point clouds FPS:650 """
     print("[Python] Classify point clouds...")
 
 #     print(local_pcs)
@@ -62,49 +62,6 @@ def classify_pcs(local_pcs, output_cls=0):
     return output1
 
 
-def test(local_pcs, output_cls, return_list):
-    # locked!!!
-    local_pcs = torch.FloatTensor(local_pcs)  # [C, N, 3] C: pointcloud count   N:point num in pointcloud
-    print("1")
-    inputs = local_pcs.permute(0, 2, 1)  # [C, 3, N] C: pointcloud count   N:point num in pointcloud
-    print("2")
-    inputs = inputs.cuda()
-    # concate pointclouds
-    # local_pc_list = [local_pc, local_pc, local_pc]
-    # inputs = torch.cat(local_pc_list, 0)
-    print("[Python] local_pcs.shape:", local_pcs.shape)
-    print("[Python] inputs.shape:", inputs.shape)
-    output = model(inputs)
-    output = output.softmax(1)
-    # pred = output.data.max(1, keepdim=True)[1]
-    # print("[pred] ", pred)
-
-    output = output.cpu()
-    output1 = list(output.data.numpy()[:, output_cls])
-    # print("[output] ", output.data.numpy())
-    #     print("[output1] ", output1)
-
-    print("[Python] Classify point clouds done.")
-
-
-def classify_pcs_test(local_pcs, output_cls=0):
-    """ Classify point clouds FPS:680 """
-    print("[Python] Classify point clouds1...")
-
-#     print(local_pcs)
-#     print(local_pcs.shape)
-
-    mp.set_start_method('spawn')
-    return_list = mp.Manager().list()
-    print("[1] ")
-
-    p = mp.Process(target=test, args=(local_pcs, output_cls, return_list))
-    p.start()
-    p.join()
-
-    # return list(return_list)
-
-
 def main():
     # local_pcs = np.array([
     #     [[0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2], [0.0, 0.1, 0.2]],
@@ -114,7 +71,8 @@ def main():
     #     [[0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2]]
     #     ])
 
-    local_pcs = torch.ones(512, 1024, 3)
+    batch_size = 512  # max 550
+    local_pcs = torch.ones(batch_size, 1024, 3)
     print(local_pcs, local_pcs.shape)
 
     weights_path = '/home/sdhm/Projects/SSGPD/Classifier/assets/learned_models/pointnet_100.model'
@@ -122,10 +80,9 @@ def main():
     load_weight(weights_path)
 
     start = time.time()
-    for i in range(100):
-        classify_pcs(local_pcs)
+    classify_pcs(local_pcs)
 
-    print("FPS:", 100/(time.time()-start))
+    print("FPS:", batch_size/(time.time()-start))
 
 
 if __name__ == "__main__":

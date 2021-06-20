@@ -24,4 +24,4 @@ class DefaultConfigs(object):
 
 
 # [lenet, mobilenet, mobilenet_v2, resnet, densenet, inception_v3]
-config = DefaultConfigs("densenet")
+config = DefaultConfigs("lenet")

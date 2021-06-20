@@ -73,6 +73,35 @@ void CandidatesGenerator::preprocessPointCloud(util::Cloud &cloud) {
         cloud.sampleAbovePlane();
     }
 
+    if (0) {
+        // 平面分割可视化
+        // Subsample the samples above plane
+        printf("Sampling above plane ...\n");
+        pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZRGBA>);
+        std::vector<int> indices(0);
+        pcl::SACSegmentation<pcl::PointXYZRGBA> seg;
+        pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+        pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+        seg.setInputCloud(cloud.getCloudProcessed());
+        seg.setOptimizeCoefficients(true);
+        seg.setModelType(pcl::SACMODEL_PLANE);
+        seg.setMethodType(pcl::SAC_RANSAC);
+        seg.setDistanceThreshold(0.01);
+        seg.segment(*inliers, *coefficients);
+        if (inliers->indices.size() > 0) {
+            pcl::ExtractIndices<pcl::PointXYZRGBA> extract;
+            extract.setInputCloud(cloud.getCloudProcessed());
+            extract.setIndices(inliers);
+            extract.setNegative(true);
+            extract.filter(indices);  // 获得桌面以上点云索引
+            extract.filter(*cloud_filtered); // 获得桌面以上点云
+        }
+
+        util::Plot plotter(0, 0);
+        plotter.plotCloud(cloud_filtered, "above_plane");
+        plotter.plotCloud(cloud.getCloudOriginal(), "Original");
+    }
+
     // Subsample the samples
     cloud.filterSamples(params_.workspace_);
     cloud.subsample(params_.num_samples_);

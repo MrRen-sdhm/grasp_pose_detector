@@ -42,6 +42,8 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
 
 // Custom
 #include <gpd/candidate/hand.h>

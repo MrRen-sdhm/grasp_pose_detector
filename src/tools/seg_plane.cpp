@@ -38,45 +38,12 @@ namespace detect_grasps {
         if(show)
             plotter.plotCloud(cloud.getCloudOriginal(), "origion");
 
-        // Calculate surface normals using integral images if possible.
-        cloud.calculateNormals(8);
-        if(show)
-            plotter.plotNormals(cloud.getCloudProcessed(), cloud.getNormals());
-
         // Workspace filtering
-        std::vector<double> workspace = {-0.23, 0.23, -0.25, 0.25, -1.0, 1.0};
+        std::vector<double> workspace = {0.4, 2.0, -0.1, 0.1, -2.0, 2.0};
         cloud.filterWorkspace(workspace);
 
         if(show)
             plotter.plotCloud(cloud.getCloudProcessed(), "filterWorkspace");
-
-        /// 保存带法线点云
-        Eigen::Matrix3Xd normals = cloud.getNormals();
-        pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_ = cloud.getCloudProcessed();
-        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normal (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-        for (int i = 0; i < normals.cols(); i++) {
-            pcl::PointXYZRGBNormal p;
-            p.x = cloud_->points[i].x;
-            p.y = cloud_->points[i].y;
-            p.z = cloud_->points[i].z;
-            p.r = cloud_->points[i].r;
-            p.g = cloud_->points[i].g;
-            p.b = cloud_->points[i].b;
-            p.normal_x = normals(0, i);
-            p.normal_y = normals(1, i);
-            p.normal_z = normals(2, i);
-            cloud_with_normal->points.push_back(p);
-        }
-
-        // 移除nan点
-        std::vector<int> indices1;
-        pcl::removeNaNFromPointCloud(*cloud_with_normal, *cloud_with_normal, indices1);
-        pcl::removeNaNNormalsFromPointCloud(*cloud_with_normal, *cloud_with_normal, indices1);
-
-        pcl::PCDWriter writer;
-        cloud_with_normal->width = 1;
-        cloud_with_normal->height = cloud_with_normal->points.size();
-        writer.writeASCII("/home/sdhm/cloud_with_normals.pcd", *cloud_with_normal); // 保存计算过法线的点云
 
         // Voxelization
         if (0) {
@@ -115,6 +82,7 @@ namespace detect_grasps {
         std::vector<int> indices2;
         pcl::removeNaNFromPointCloud(*cloud_filtered, *cloud_filtered, indices2);
 
+        pcl::PCDWriter writer;
         writer.writeASCII("/home/sdhm/cloud_above_plane.pcd", *cloud_filtered); // 保存桌面以上的点云(无法线)
 
         return 0;

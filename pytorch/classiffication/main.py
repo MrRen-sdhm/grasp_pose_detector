@@ -1,17 +1,17 @@
-import os 
-import random 
+import os
+import random
 import time
 import json
 import torch
 import torchvision
-import numpy as np 
-import pandas as pd 
+import numpy as np
+import pandas as pd
 import warnings
 from datetime import datetime
 from torch import nn,optim
-from config import config 
+from config import config
 from collections import OrderedDict
-from torch.autograd import Variable 
+from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from dataset.dataloader import *
 from sklearn.model_selection import train_test_split,StratifiedKFold
@@ -50,14 +50,14 @@ def evaluate(val_loader, model, criterion, epoch, lr, resume):
     losses = AverageMeter()
     top1 = AverageMeter()
     # progress bar
-    val_progressor = ProgressBar(mode="Val  ", epoch=epoch, total_epoch=config.epochs, 
+    val_progressor = ProgressBar(mode="Val  ", epoch=epoch, total_epoch=config.epochs,
         model_name=config.model_name, total=len(val_loader), resume=resume)
     # switch to evaluate mode and confirm model has been transfered to cuda
     model.cuda()
     # model.eval()
     with torch.no_grad():
         for i, (input, target) in enumerate(val_loader):
-            val_progressor.current = i 
+            val_progressor.current = i
             input = Variable(input).cuda()
             target = Variable(target).cuda()
 
@@ -81,7 +81,7 @@ def evaluate(val_loader, model, criterion, epoch, lr, resume):
     return [losses.avg, top1.avg]
 
 
-# more details to build main function    
+# more details to build main function
 def main():
     fold = config.fold
     # mkdirs
@@ -96,7 +96,7 @@ def main():
     if not os.path.exists(config.weights + config.model_name + os.sep + fold + os.sep):
         os.makedirs(config.weights + config.model_name + os.sep + fold + os.sep)
     if not os.path.exists(config.best_models + config.model_name + os.sep + fold + os.sep):
-        os.makedirs(config.best_models + config.model_name + os.sep + fold + os.sep)  
+        os.makedirs(config.best_models + config.model_name + os.sep + fold + os.sep)
 
     # get model and optimizer
     if config.model_name is "lenet":
@@ -112,8 +112,30 @@ def main():
     elif config.model_name is "inception_v3":
         model = inception_v3()
 
+
+    # from thop import profile
+    # input = torch.randn(1, 12, 60, 60)
+
+    # flops, params = profile(model, inputs=(input,))
+    # print("[DEBUG] Number of FLOPs: %.2fM" % (flops / 1e6))  # 12ch: 36.91M  3ch: 22.80M
+    # print("[DEBUG] Number of parameter: %.2fM" % (params / 1e6))  # 12ch: 3.63M  3ch: 3.63M
+
+
+    # import time
+    # model.cuda()
+    # input = Variable(input).cuda()
+    # sum = 0
+    # for i in range(10000):
+    #     start = time.time()
+    #     output = model(input)
+    #     sum += time.time()-start
+    # print("forward time:", (sum / 10000) * 1000)  # 12ch: 0.2694ms  3ch: 0.2631ms
+
+
     print(model, "\n")
     # model = torch.nn.DataParallel(model)
+
+    exit()
     model.cuda()
 
     # optimizer = optim.SGD(model.parameters(),lr = config.lr,momentum=0.9,weight_decay=config.weight_decay)
@@ -124,7 +146,7 @@ def main():
     best_precision1 = 0
     best_precision_save = 0
     resume = False
-    
+
     # restart the training process
     if resume:
         resume_file = config.best_models + config.model_name + "/" + fold + "/model_best_89.32.pt"
@@ -164,7 +186,7 @@ def main():
         lr = get_learning_rate(optimizer)
         # print("learning rate:", lr)
 
-        train_progressor = ProgressBar(mode="Train", epoch=epoch, total_epoch=config.epochs, 
+        train_progressor = ProgressBar(mode="Train", epoch=epoch, total_epoch=config.epochs,
             model_name=config.model_name, total=len(train_dataloader), resume=resume)
         # train
         # global iter

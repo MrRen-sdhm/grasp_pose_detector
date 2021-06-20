@@ -133,6 +133,16 @@ namespace gpd {
                     const PointCloudRGBA::Ptr &cloud, const std::string &str,
                     const candidate::HandGeometry &geometry, bool use_same_color = true);
 
+            void plotFingers3DHighestScore(
+                    const std::vector<std::unique_ptr<candidate::Hand>> &hand_list,
+                    const PointCloudRGBA::Ptr &cloud, const std::string &str,
+                    const candidate::HandGeometry &geometry, bool just_best = false);
+
+            void plotFingers3DHighestScore3(
+                    const std::vector<std::unique_ptr<candidate::Hand>> &hand_list,
+                    const PointCloudRGBA::Ptr &cloud, const std::string &str,
+                    const candidate::HandGeometry &geometry);
+
             void plotFingers3DCloudMesh(
                     const std::vector<std::unique_ptr<candidate::Hand>> &hand_list,
                     const PointCloudRGBA::Ptr &cloud, const PointCloudRGBA::Ptr &mesh, const std::string &str,

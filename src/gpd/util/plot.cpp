@@ -191,7 +191,7 @@ namespace gpd {
                   int idx_color = j / num_orientations_;
                   rgb = RGB[idx_color];
                 } else {
-                  rgb << 0.0, 0.5, 0.5;
+                  rgb << 0.01, 0.66, 0.62; // 0.0, 0.5, 0.5;
                 }
                 plotHand3D(viewer, *hand_set_list[i]->getHands()[j], geometry,
                            i * max_hands_per_set_ + j, rgb);
@@ -232,7 +232,7 @@ namespace gpd {
 
           Eigen::Vector3d hand_rgb;
           if (use_same_color) {
-            hand_rgb << 0.0, 0.0, 1.0;
+            hand_rgb << 0.01, 0.66, 0.62;
           }
 
           for (int i = 0; i < hand_list.size(); i++) {
@@ -256,6 +256,57 @@ namespace gpd {
                   pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
 
           runViewer(viewer);
+        }
+
+        void Plot::plotFingers3DHighestScore(
+                const std::vector<std::unique_ptr<candidate::Hand>> &hand_list,
+                const PointCloudRGBA::Ptr &cloud, const std::string &str,
+                const candidate::HandGeometry &geometry, const bool just_best) {
+            PCLVisualizer viewer = createViewer(str);
+
+            Eigen::Vector3d hand_rgb;
+
+            if(!just_best) {
+                for (int i = 1; i < hand_list.size(); i++) {
+                    hand_rgb << 0.01, 0.66, 0.62;
+                    plotHand3D(viewer, *hand_list[i], geometry, i, hand_rgb);
+                }
+            }
+            // 最后显示最高分抓取，避免重复被遮挡
+            hand_rgb << 1.0, 0.0, 0.0; // 最高得分显示为红色
+            plotHand3D(viewer, *hand_list[0], geometry, 0, hand_rgb);
+
+            pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(
+                    cloud);
+            viewer->addPointCloud<pcl::PointXYZRGBA>(cloud, rgb, "cloud");
+            viewer->setPointCloudRenderingProperties(
+                    pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
+
+            runViewer(viewer);
+        }
+
+        void Plot::plotFingers3DHighestScore3(
+                const std::vector<std::unique_ptr<candidate::Hand>> &hand_list,
+                const PointCloudRGBA::Ptr &cloud, const std::string &str,
+                const candidate::HandGeometry &geometry) {
+            PCLVisualizer viewer = createViewer(str);
+
+            Eigen::Vector3d hand_rgb;
+
+            hand_rgb << 1.0, 0.0, 0.0;
+            plotHand3D(viewer, *hand_list[0], geometry, 0, hand_rgb);
+            hand_rgb << 0.0, 1.0, 0.0;
+            plotHand3D(viewer, *hand_list[1], geometry, 1, hand_rgb);
+            hand_rgb << 0.01, 0.66, 0.62;
+            plotHand3D(viewer, *hand_list[2], geometry, 2, hand_rgb);
+
+            pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(
+                    cloud);
+            viewer->addPointCloud<pcl::PointXYZRGBA>(cloud, rgb, "cloud");
+            viewer->setPointCloudRenderingProperties(
+                    pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
+
+            runViewer(viewer);
         }
 
         void Plot::plotFingers3DCloudMesh(

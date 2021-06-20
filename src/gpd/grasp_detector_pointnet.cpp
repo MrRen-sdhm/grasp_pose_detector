@@ -218,7 +218,7 @@ namespace gpd {
         }
         double t_candidates = omp_get_wtime() - t0_candidates;
         if (plot_candidates_) {
-            plotter_->plotFingers3D(hand_set_list, cloud.getCloudOriginal(), "Grasp candidates", hand_geom);
+            plotter_->plotFingers3D(hand_set_list, cloud.getCloudProcessed(), "Grasp candidates", hand_geom);
         }
 
         // 2. Filter the candidates.
@@ -232,12 +232,12 @@ namespace gpd {
             plotter_->plotCloud(cloud.getCloudProcessed(), "Filtered Grasps Workspace");
         }
         if (plot_filtered_candidates_) {
-            plotter_->plotFingers3D(hand_set_list_filtered, cloud.getCloudOriginal(), "Filtered Grasps (Aperture, Workspace)", hand_geom);
+            plotter_->plotFingers3D(hand_set_list_filtered, cloud.getCloudProcessed(), "Filtered Grasps (Aperture, Workspace)", hand_geom);
         }
         if (filter_approach_direction_) {
             hand_set_list_filtered = filterGraspsDirection(hand_set_list_filtered, direction_, thresh_rad_);
             if (plot_filtered_candidates_) {
-                plotter_->plotFingers3D(hand_set_list_filtered, cloud.getCloudOriginal(), "Filtered Grasps (Approach)", hand_geom);
+                plotter_->plotFingers3D(hand_set_list_filtered, cloud.getCloudProcessed(), "Filtered Grasps (Approach)", hand_geom);
             }
         }
         double t_filter = omp_get_wtime() - t0_filter;
@@ -271,7 +271,7 @@ namespace gpd {
         // 5. Select the <num_selected> highest scoring grasps.
         hands = selectGrasps(hands);
         if (plot_valid_grasps_) {
-            plotter_->plotFingers3D(hands, cloud.getCloudOriginal(), "Valid Grasps", hand_geom);
+            plotter_->plotFingers3D(hands, cloud.getCloudProcessed(), "Valid Grasps", hand_geom, false);
         }
 
         // 6. Cluster the grasps.
@@ -318,8 +318,12 @@ namespace gpd {
     //            << std::endl;
 
         if (plot_selected_grasps_) {
-            plotter_->plotFingers3D(clusters, cloud.getCloudOriginal(),
-                                    "Selected Grasps", hand_geom, false);
+//            plotter_->plotFingers3D(clusters, cloud.getCloudOriginal(),
+//                                    "Selected Grasps", hand_geom, false);
+            plotter_->plotFingers3D(clusters, cloud.getCloudProcessed(), "Clustered Grasps", hand_geom, true); // 单色显示
+            plotter_->plotFingers3DHighestScore3(clusters, cloud.getCloudProcessed(), "Selected Grasps", hand_geom); // RGB显示前三个
+            plotter_->plotFingers3DHighestScore(clusters, cloud.getCloudProcessed(), "Selected Grasps", hand_geom, false); // 最高分显示为红色
+            plotter_->plotFingers3DHighestScore(clusters, cloud.getCloudProcessed(), "Selected Grasps", hand_geom, true); // 仅显示最高分
         }
 
         return clusters;
